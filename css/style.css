@@ -216,9 +216,9 @@ body::-webkit-scrollbar {
 #content .zipper-container img {
   display: block;
   width: 36%;
-  border: 2px dashed #a5a5a5;
+  border: 2px solid #a5a5a5;
   border-radius: 10px;
-  filter: invert(1);
+ 
 }
 
 #content .zipper-img-left {
