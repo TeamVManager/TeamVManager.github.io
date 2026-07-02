@@ -16,7 +16,11 @@ body { background: #000; margin: 0; color: #fff; font-family: 'Saira', sans-seri
 #content { width: 960px; margin: 20px auto; padding: 8px 0; }
 #content h1 { font-size: 2em; letter-spacing: 0.25em; text-align: center; margin: 10px auto 3px; }
 .sub { font-size: 0.85em; color: #fff; letter-spacing: 0.2em; text-align: center; font-weight: 400; margin: 0 auto 14px; }
-.gen-row { text-align: center; margin: 14px 0 10px; }
+.gen-row { display:flex; justify-content:center; align-items:center; gap:12px; margin: 14px 0 10px; flex-wrap:wrap; }
+.meta-btn { padding: 10px 20px; border: 0.2em solid #555; border-radius: 10px; background: transparent; color: #555; font-family: 'Saira', sans-serif; font-size: 0.85em; letter-spacing: 0.15em; text-transform: uppercase; cursor: pointer; transition: 0.2s; }
+.meta-btn.on { border-color: #f7bb2b; color: #f7bb2b; background: rgba(247,187,43,0.08); }
+.meta-disc { text-align:center; font-size:0.6em; color:#f7bb2b; letter-spacing:0.12em; margin:-8px 0 2px; display:none; }
+.meta-disc.show { display:block; }
 .gen-btn { padding: 10px 30px; border: 0.2em solid #fff; border-radius: 10px; background: transparent; color: #fff; font-family: 'Saira', sans-serif; font-size: 1.05em; letter-spacing: 0.25em; text-transform: uppercase; cursor: pointer; transition: 0.2s; }
 .gen-btn:hover:not(:disabled) { background: #fff; color: #000; }
 .gen-btn:disabled { opacity: 0.3; cursor: default; }
@@ -90,13 +94,13 @@ body { background: #000; margin: 0; color: #fff; font-family: 'Saira', sans-seri
 #slot-overlay { position:fixed; inset:0; z-index:1000; display:flex; align-items:center; justify-content:center; }
 #slot-overlay.hide { display:none; }
 .so-backdrop { position:absolute; inset:0; background:rgba(0,0,0,0.85); }
-.so-panel { position:relative; background:#0a0a0a; border:0.15em solid #fff; border-radius:10px; padding:16px; max-width:480px; width:90%; max-height:80vh; overflow-y:auto; }
+.so-panel { position:relative; background:#0a0a0a; border:0.15em solid #fff; border-radius:10px; padding:16px; max-width:480px; width:90%; max-height:80vh; overflow-y:auto; -webkit-overflow-scrolling:touch; touch-action:manipulation; }
 .so-header { font-size:0.65em; letter-spacing:0.2em; color:#f7bb2b; text-transform:uppercase; text-align:center; margin-bottom:6px; }
 .so-random { display:block; margin:0 auto 8px; padding:3px 14px; border:0.15em solid #fff; border-radius:8px; background:transparent; color:#fff; font-family:'Saira',sans-serif; font-size:0.6em; letter-spacing:0.1em; cursor:pointer; transition:0.15s; }
 .so-random:hover { background:#fff; color:#000; }
 .so-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:4px; }
-.so-item { display:flex; flex-direction:column; align-items:center; gap:2px; padding:4px 2px; border:0.1em solid #333; border-radius:6px; background:transparent; color:#fff; font-family:'Saira',sans-serif; font-size:0.55em; cursor:pointer; transition:0.15s; line-height:1.2; }
-.so-item:hover { border-color:#fff; color:#fff; }
+.so-item { display:flex; flex-direction:column; align-items:center; gap:2px; padding:4px 2px; border:0.1em solid #333; border-radius:6px; background:transparent; color:#fff; font-family:'Saira',sans-serif; font-size:0.55em; cursor:pointer; transition:0.15s; line-height:1.2; touch-action:manipulation; }
+@media (hover:hover){ .so-item:hover { border-color:#fff; color:#fff; } }
 .so-item.locked { border-color:#f7bb2b; color:#f7bb2b; background:rgba(247,187,43,0.08); }
 .so-item img { width:100%; height:auto; max-height:40px; object-fit:contain; }
 
@@ -109,7 +113,8 @@ hr { border: 0; border-top: 0.08em solid #222; margin: 16px 0 12px; }
 <div id="content">
   <h1>TEAM LOADOUT GENERATOR</h1>
   <div class="sub">Choose your classes and generate</div>
-  <div class="gen-row"><button class="gen-btn" id="gb" disabled>GENERATE ALL</button></div>
+  <div class="gen-row"><button class="gen-btn" id="gb" disabled>GENERATE ALL</button><button class="meta-btn" id="mb">META S10</button></div>
+  <div class="meta-disc" id="md">Season 10 meta bias active &mdash; S/A tier items preferred</div>
   <div id="team-summary" class="hide"></div>
   <div id="cols"></div>
   <hr>
@@ -207,6 +212,27 @@ const IX = {
     {a:'Pyro Grenade',b:'Smoke Grenade',d:'Smoke extinguishes fire'}
   ]
 };
+
+// ── Season 10 meta tiers ──────────────────────────────────────────────
+const META = {
+  season: 'S10',
+  Light: {
+    spec: { S:['Evasive Dash'], A:['Cloaking Device','Grappling Hook'], B:['Vanishing Bomb'], C:['Gateway','Sonar Grenade','Thermal Bore','Gravity Vortex','Dematerializer'] },
+    wep: { S:['93R','M11','LH1','ARN-220'], A:['V9S','XP-54'], B:['SH1900','Dagger','Sword','Throwing Knives','M26 Matter','Recurve Bow'], C:['SR-84','DB12'] },
+    gad: { S:['Gateway','H+ Infuser','Glitch Grenade','Vanishing Bomb'], A:['Sonar Grenade','Gravity Vortex','Nullifier'], B:['Goo Grenade','Frag Grenade','Smoke Grenade','Thermal Bore','Tracking Dart'], C:['Flashbang'] }
+  },
+  Medium: {
+    spec: { S:['Healing Beam','Dematerializer'], A:['Guardian Turret'], B:['Mesh Shield'], C:['Shockwave'] },
+    wep: { S:['FAMAS','FCAR','Model 1887'], A:['AKM','Pike-556','Cerberus 12GA'], B:['R.357','CL-40','Dual Blades'], C:['Riot Shield','Spear'] },
+    gad: { S:['Defibrillator','Jump Pad','Zipline'], A:['APS Turret','Glitch Trap','Data Reshaper','Gas Mine'], B:['Dome Shield','Explosive Mine','Pyro Mine','Frag Grenade','Flashbang'], C:['Proximity Sensor','Goo Grenade','Smoke Grenade','Sonar Grenade','Thermal Bore'] }
+  },
+  Heavy: {
+    spec: { S:['Winch Claw'], A:["Charge 'N' Slam"], B:['Mesh Shield'], C:['Goo Gun'] },
+    wep: { S:['SA1216','Shak-50','M60','M134'], A:['KS-23','Lewis Gun','Flamethrower'], B:['.50 Akimbo'], C:['Sledgehammer'] },
+    gad: { S:['RPG-7','C4'], A:['Dome Shield','Barricade','Anti-Gravity Cube','Pyro Mine'], B:['Healing Emitter','Proximity Sensor','Gas Mine','Lockbolt','Explosive Mine'], C:['Goo Grenade','Frag Grenade'] }
+  }
+};
+
 function checkIX(items){
   let a=[];
   IX.anti.forEach(r=>{let i=items.indexOf(r.a),j=items.indexOf(r.b);if(i>-1&&j>-1)a.push(r.d);});
@@ -387,6 +413,18 @@ function imgTag(item) {
 // ── Helpers ───────────────────────────────────────────────────────────
 function ra(a){return a[Math.floor(Math.random()*a.length)];}
 function rn(n,a){let p=[...a],r=[];while(r.length<n&&p.length){let i=Math.floor(Math.random()*p.length);r.push(p.splice(i,1)[0]);}return r;}
+function pickWithMeta(pool, slotKey, classKey){
+  let ck = classKey || cc;
+  if(!metaOn||!META[ck]||!META[ck][slotKey]) return ra(pool);
+  let tiers=META[ck][slotKey];
+  if(tiers.S&&tiers.S.length&&Math.random()<0.6){
+    let sPool=pool.filter(x=>tiers.S.includes(x));
+    if(sPool.length) return ra(sPool);
+  }
+  let saPool=pool.filter(x=>[...(tiers.S||[]),...(tiers.A||[])].includes(x));
+  if(saPool.length) return ra(saPool);
+  return ra(pool);
+}
 function hsBadge(name){
   let w=WS[name];
   if(!w||!w.hs) return '';
@@ -463,7 +501,7 @@ let cols = [
   { cc:null, locked:{spec:null,wep:null,gad0:null,gad1:null,gad2:null} },
   { cc:null, locked:{spec:null,wep:null,gad0:null,gad1:null,gad2:null} }
 ];
-let spinning=false, cdTimer=null;
+let spinning=false, cdTimer=null, metaOn=false;
 
 // ── Lock / overlay ───────────────────────────────────────────────────
 function lockSlot(ci, slot, value){
@@ -501,8 +539,9 @@ function spinCol(ci, c, lk, doneCB){
   let wepNames=c.wep;
   let gadPool=[...c.gad,...DATA.shared.gad];
 
-  let specFinal=lk.spec||ra(specNames);
-  let wepFinal=lk.wep||ra(wepNames);
+  let ck=cols[ci].cc;
+  let specFinal=lk.spec||pickWithMeta(specNames,'spec',ck);
+  let wepFinal=lk.wep||pickWithMeta(wepNames,'wep',ck);
   let gadgets=[null,null,null];
   let used=[];
   SLOT_KEYS.slice(2).forEach((key,i)=>{ if(lk[key]){ gadgets[i]=lk[key]; used.push(lk[key]); } });
@@ -510,7 +549,7 @@ function spinCol(ci, c, lk, doneCB){
     if(gadgets[i]===null){
       let pool=gadPool.filter(g=>!used.includes(g));
       if(!pool.length) pool=gadPool;
-      let pick=ra(pool);
+      let pick=pickWithMeta(pool,'gad',ck);
       gadgets[i]=pick; used.push(pick);
     }
   });
@@ -759,6 +798,13 @@ document.getElementById('slot-overlay').addEventListener('click', function(e){
 
 document.addEventListener('keydown', function(e){
   if(e.key==='Escape') closeSlotOverlay();
+});
+
+document.getElementById('mb').addEventListener('click', function(){
+  if(spinning) return;
+  metaOn=!metaOn;
+  this.classList.toggle('on',metaOn);
+  document.getElementById('md').classList.toggle('show',metaOn);
 });
 
 document.getElementById('gb').onclick=genAll;
