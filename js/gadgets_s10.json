@@ -1,0 +1,45 @@
+{
+  "Light": {
+    "Breach Charge": { "type": "explosive", "dmg": 80, "cd": 20, "charges": 3, "radius": 2.5, "duration": 0 },
+    "Glitch Grenade": { "type": "utility", "dmg": 0, "cd": 25, "charges": 2, "radius": 6, "duration": 5 },
+    "Gateway": { "type": "utility", "dmg": 0, "cd": 25, "charges": 2, "radius": 0, "duration": 20 },
+    "Vanishing Bomb": { "type": "utility", "dmg": 0, "cd": 25, "charges": 1, "radius": 5, "duration": 5 },
+    "H+ Infuser": { "type": "support", "dmg": 0, "cd": 12, "charges": 20, "radius": 0, "duration": 0 },
+    "Sonar Grenade": { "type": "utility", "dmg": 0, "cd": 34, "charges": 2, "radius": 12, "duration": 5.25 },
+    "Thermal Bore": { "type": "explosive", "dmg": 0, "cd": 25, "charges": 2, "radius": 0, "duration": 0 },
+    "Gravity Vortex": { "type": "utility", "dmg": 0, "cd": 20, "charges": 1, "radius": 6, "duration": 10 },
+    "Tracking Dart": { "type": "utility", "dmg": 5, "cd": 12, "charges": 4, "radius": 0, "duration": 13 },
+    "Nullifier": { "type": "utility", "dmg": 0, "cd": 18, "charges": 1, "radius": 12, "duration": 3.75 }
+  },
+  "Medium": {
+    "Defibrillator": { "type": "support", "dmg": 50, "cd": 30, "charges": 1, "radius": 2, "duration": 0 },
+    "Jump Pad": { "type": "utility", "dmg": 0, "cd": 40, "charges": 1, "radius": 0, "duration": 0 },
+    "Zipline": { "type": "utility", "dmg": 0, "cd": 37, "charges": 1, "radius": 0, "duration": 0 },
+    "APS Turret": { "type": "defensive", "dmg": 0, "cd": 35, "charges": 1, "radius": 3, "duration": 0 },
+    "Glitch Trap": { "type": "defensive", "dmg": 0, "cd": 20, "charges": 1, "radius": 5, "duration": 0 },
+    "Data Reshaper": { "type": "utility", "dmg": 0, "cd": 26, "charges": 2, "radius": 21, "duration": 0 },
+    "Hover Pad": { "type": "utility", "dmg": 0, "cd": 30, "charges": 1, "radius": 0, "duration": 0 },
+    "Gas Mine": { "type": "explosive", "dmg": 0, "cd": 27, "charges": 2, "radius": 5, "duration": 12 },
+    "Explosive Mine": { "type": "explosive", "dmg": 120, "cd": 15, "charges": 1, "radius": 4.25, "duration": 0 },
+    "Breach Drill": { "type": "explosive", "dmg": 80, "cd": 15, "charges": 1, "radius": 0, "duration": 0 }
+  },
+  "Heavy": {
+    "RPG-7": { "type": "explosive", "dmg": 110, "cd": 45, "charges": 1, "radius": 5.5, "duration": 0 },
+    "Dome Shield": { "type": "defensive", "dmg": 0, "cd": 30, "charges": 1, "radius": 5, "duration": 5.5 },
+    "C4": { "type": "explosive", "dmg": 155, "cd": 30, "charges": 1, "radius": 6.5, "duration": 0 },
+    "Barricade": { "type": "defensive", "dmg": 0, "cd": 25, "charges": 2, "radius": 0, "duration": 0 },
+    "Lockbolt": { "type": "utility", "dmg": 5, "cd": 30, "charges": 1, "radius": 6, "duration": 7 },
+    "Anti-Gravity Cube": { "type": "utility", "dmg": 0, "cd": 28, "charges": 1, "radius": 4, "duration": 10 },
+    "Pyro Mine": { "type": "explosive", "dmg": 55, "cd": 25, "charges": 2, "radius": 5, "duration": 5 },
+    "Healing Emitter": { "type": "support", "dmg": 0, "cd": 30, "charges": 1, "radius": 4, "duration": 0 },
+    "Proximity Sensor": { "type": "utility", "dmg": 0, "cd": 25, "charges": 2, "radius": 11, "duration": 0 }
+  },
+  "Shared": {
+    "Frag Grenade": { "type": "explosive", "dmg": 140, "cd": 25, "charges": 1, "radius": 5.5, "duration": 0 },
+    "Pyro Grenade": { "type": "explosive", "dmg": 0, "cd": 24, "charges": 1, "radius": 5, "duration": 5 },
+    "Gas Grenade": { "type": "explosive", "dmg": 0, "cd": 24, "charges": 1, "radius": 5, "duration": 12 },
+    "Goo Grenade": { "type": "utility", "dmg": 0, "cd": 30, "charges": 2, "radius": 0, "duration": 0 },
+    "Smoke Grenade": { "type": "utility", "dmg": 0, "cd": 50, "charges": 2, "radius": 5, "duration": 9 },
+    "Flashbang": { "type": "utility", "dmg": 0, "cd": 18, "charges": 2, "radius": 8, "duration": 3 }
+  }
+}
