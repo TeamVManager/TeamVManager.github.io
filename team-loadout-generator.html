@@ -1,0 +1,767 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>TeamV — Team Loadout Generator</title>
+<link rel="shortcut icon" type="image/x-icon" href="imgs/favicon.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=REM:ital,wght@0,100..900;1,100..900&display=swap" rel="stylesheet">
+<style>
+* { box-sizing: border-box; }
+body { background: #000; margin: 0; color: #fff; font-family: 'Saira', sans-serif; }
+#nav { width: 100%; padding: 24px 0 8px; text-align: center; }
+#nav a { display: inline-block; padding: 6px 20px; border: 0.2em solid #fff; border-radius: 10px; color: #fff; text-decoration: none; font-size: 0.95em; letter-spacing: 0.2em; text-transform: uppercase; transition: 0.2s; }
+#nav a:hover { background: #fff; color: #000; }
+#content { width: 960px; margin: 20px auto; padding: 8px 0; }
+#content h1 { font-size: 2em; letter-spacing: 0.25em; text-align: center; margin: 10px auto 3px; }
+.sub { font-size: 0.85em; color: #fff; letter-spacing: 0.2em; text-align: center; font-weight: 400; margin: 0 auto 14px; }
+.gen-row { text-align: center; margin: 14px 0 10px; }
+.gen-btn { padding: 10px 30px; border: 0.2em solid #fff; border-radius: 10px; background: transparent; color: #fff; font-family: 'Saira', sans-serif; font-size: 1.05em; letter-spacing: 0.25em; text-transform: uppercase; cursor: pointer; transition: 0.2s; }
+.gen-btn:hover:not(:disabled) { background: #fff; color: #000; }
+.gen-btn:disabled { opacity: 0.3; cursor: default; }
+.gen-btn.cd { opacity: 0.5; border-color: #f7bb2b; color: #f7bb2b; animation: pulse 1s ease-in-out infinite; }
+@keyframes pulse { 0%,100% { opacity: 0.5; } 50% { opacity: 0.8; } }
+
+/* ── Columns ───────────────────────────────────────────────── */
+#cols { display: flex; gap: 14px; justify-content: center; }
+.col { flex: 1; min-width: 0; display: flex; flex-direction: column; align-items: center; gap: 6px; background: #080808; border: 0.08em solid #1a1a1a; border-radius: 10px; padding: 10px; }
+.col-label { font-size: 0.55em; letter-spacing: 0.25em; color: #fff; text-transform: uppercase; text-align: center; margin-bottom: 2px; }
+.cclass-row { display: flex; gap: 6px; justify-content: center; margin-bottom: 6px; flex-wrap: wrap; }
+.cclass-btn { padding: 3px 12px; border: 0.15em solid #555; border-radius: 8px; background: transparent; color: #777; font-family: 'Saira', sans-serif; font-size: 0.65em; letter-spacing: 0.15em; text-transform: uppercase; cursor: pointer; transition: 0.15s; }
+.cclass-btn:hover { border-color: #fff; color: #fff; }
+.cclass-btn.on { background: #fff; color: #000; border-color: #fff; }
+
+.crow { display: flex; gap: 8px; justify-content: center; width: 100%; }
+
+/* ── Cards (compact) ────────────────────────────────────────── */
+.card { width: 135px; border: 0.12em solid #333; border-radius: 8px; overflow: hidden; background: #0a0a0a; transition: 0.2s; cursor: pointer; min-height: 175px; }
+.card:hover { transform: translateY(-3px); }
+.card .img { width: 100%; height: 95px; display: flex; align-items: center; justify-content: center; overflow: hidden; background: linear-gradient(180deg, #9EB1C0, #CCDADE); }
+.card .img img { width: 100%; height: 100%; object-fit: contain; padding: 4px; }
+.card .img .f { width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; font-size: 1.8em; color: #fff; }
+.card .ft { padding: 4px 6px; text-align: center; min-height: 32px; display: flex; flex-direction: column; justify-content: center; border-top: 0.05em solid #222; }
+.card .ft .t { font-size: 0.5em; letter-spacing: 0.12em; color: #fff; text-transform: uppercase; }
+.card .ft .n { font-size: 0.7em; font-weight: 600; color: #fff; margin-top: 1px; line-height: 1.15; }
+.card.spin .img .f, .card.spin .ft .n { color: #f7bb2b; }
+.card.spin { border-color: #f7bb2b !important; box-shadow: 0 0 10px rgba(247,187,43,0.25); }
+.card.done { border-color: #fff !important; }
+.card.ph { border-color: #222 !important; border-style: dashed; }
+.card.ph:hover { border-color: #444 !important; transform: none; }
+.card.lk { border-color: #f7bb2b !important; }
+.s-card { border-color: #f7bb2b; }
+.w-card { border-color: #4a9eff; }
+.g-card { border-color: #4ae6a0; }
+
+/* ── Headshot badge ─────────────────────────────────────────── */
+.hsb { background: linear-gradient(90deg,transparent,rgba(247,187,43,0.12),transparent); text-align:center; padding:2px 0; font-size:0.52em; letter-spacing:0.1em; color:#f7bb2b; border-bottom:0.05em solid rgba(247,187,43,0.2); }
+.hsb-icon { font-size:1.1em; margin-right:1px; }
+
+/* ── Gadget type badge ──────────────────────────────────────── */
+.gt { font-size: 0.5em; letter-spacing: 0.08em; text-transform: uppercase; text-align: center; padding: 2px 0; border-top: 0.05em solid #222; }
+.gt .b { display: inline-block; padding: 0 5px; border-radius: 2px; }
+.gt .explosive { background: rgba(255,80,50,0.2); color: #ff5032; }
+.gt .utility { background: rgba(80,160,255,0.2); color: #50a0ff; }
+.gt .support { background: rgba(0,212,212,0.2); color: #00d4d4; }
+.gt .defensive { background: rgba(200,130,255,0.2); color: #c882ff; }
+.gt .fire { background: rgba(255,140,0,0.2); color: #ff8c00; }
+.gt .gas { background: rgba(50,220,100,0.2); color: #32dc64; }
+
+/* ── Range badge ─────────────────────────────────────────── */
+.rg { font-size: 0.62em; letter-spacing: 0.08em; text-transform: uppercase; text-align: center; padding: 2px 0; color: #fff; border-top: 0.05em solid #222; }
+
+/* ── Column synergy / ix ────────────────────────────────────── */
+.csyn { width: 100%; min-height: 10px; margin-top: 2px; }
+.csyn-hdr { font-size: 0.6em; color: #f7bb2b; letter-spacing: 0.08em; margin: 2px 0 1px; text-transform: uppercase; }
+.csyn-ln { font-size: 0.68em; color: #fff; margin: 0; line-height: 1.4; }
+.cix { display: flex; flex-wrap: wrap; gap: 3px; width: 100%; min-height: 10px; margin-top: 1px; }
+.cix-b { display: inline-block; padding: 1px 5px; border-radius: 3px; font-size: 0.55em; letter-spacing: 0.04em; }
+.cix-anti { background: rgba(255,80,50,0.12); color: #ff5032; border: 0.05em solid rgba(255,80,50,0.2); }
+.goo-tip { width:100%; min-height:4px; margin-top:1px; }
+.tip-b { font-size:0.65em; color:#aaa; line-height:1.4; padding:1px 0; }
+
+/* ── Team synergy narrative ────────────────────────────────── */
+#team-summary { margin: 10px 0 4px; padding: 10px 16px; background: #0a0a0a; border: 0.08em solid #1a1a1a; border-radius: 8px; font-size: 0.78em; color: #fff; line-height: 1.6; letter-spacing: 0.04em; }
+#team-summary.hide { display: none; }
+#team-summary .ts-strat { color: #f7bb2b; font-weight: 600; }
+#team-summary .ts-items { color: #4a9eff; }
+
+/* ── Slot overlay (reused from singles) ─────────────────────── */
+#slot-overlay { position:fixed; inset:0; z-index:1000; display:flex; align-items:center; justify-content:center; }
+#slot-overlay.hide { display:none; }
+.so-backdrop { position:absolute; inset:0; background:rgba(0,0,0,0.85); }
+.so-panel { position:relative; background:#0a0a0a; border:0.15em solid #fff; border-radius:10px; padding:16px; max-width:480px; width:90%; max-height:80vh; overflow-y:auto; }
+.so-header { font-size:0.65em; letter-spacing:0.2em; color:#f7bb2b; text-transform:uppercase; text-align:center; margin-bottom:6px; }
+.so-random { display:block; margin:0 auto 8px; padding:3px 14px; border:0.15em solid #fff; border-radius:8px; background:transparent; color:#fff; font-family:'Saira',sans-serif; font-size:0.6em; letter-spacing:0.1em; cursor:pointer; transition:0.15s; }
+.so-random:hover { background:#fff; color:#000; }
+.so-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:4px; }
+.so-item { display:flex; flex-direction:column; align-items:center; gap:2px; padding:4px 2px; border:0.1em solid #333; border-radius:6px; background:transparent; color:#fff; font-family:'Saira',sans-serif; font-size:0.55em; cursor:pointer; transition:0.15s; line-height:1.2; }
+.so-item:hover { border-color:#fff; color:#fff; }
+.so-item.locked { border-color:#f7bb2b; color:#f7bb2b; background:rgba(247,187,43,0.08); }
+.so-item img { width:100%; height:auto; max-height:40px; object-fit:contain; }
+
+hr { border: 0; border-top: 0.08em solid #222; margin: 16px 0 12px; }
+#ftr { text-align: center; color: #555; font-size: 0.72em; padding: 8px 0 20px; letter-spacing: 0.1em; }
+</style>
+</head>
+<body>
+<div id="nav"><a href="index.html">&larr; TeamV</a></div>
+<div id="content">
+  <h1>TEAM LOADOUT GENERATOR</h1>
+  <div class="sub">Choose your classes and generate</div>
+  <div class="gen-row"><button class="gen-btn" id="gb" disabled>GENERATE ALL</button></div>
+  <div id="team-summary" class="hide"></div>
+  <div id="cols"></div>
+  <hr>
+  <div id="ftr">TeamV &mdash; Team Loadout Generator Alpha 1.0<br><span style="font-size:0.75em;color:#444">All in-game assets and content &copy; Embark Studios AB</span></div>
+</div>
+<div id="slot-overlay" class="hide"></div>
+<script>
+// ── Wiki image lookup ────────────────────────────────────────────────
+const W = {
+  'Evasive Dash':'42/Evasive_Dash_Rank_1.png','Cloaking Device':'b0/Cloaking_Device_Rank_1.png','Grappling Hook':'b4/Grappling_Hook_Rank_1.png',
+  'M11':'be/M11_SideView-v2.png',
+  'Breach Charge':'fc/Breach_Charge_Rank_1.png','Gateway':'c4/Gateway_Rank_1.png','Glitch Grenade':'b5/Glitch_Grenade_Rank_1.png','Gravity Vortex':'d6/Gravity_Vortex_Rank_1.png','H+ Infuser':'ad/HPlus_Infuser_Rank_1.png','Sonar Grenade':'ca/Sonar_Grenade_Rank_1.png','Nullifier':'96/Nullifier_Rank_1.png','Thermal Bore':'dd/Thermal_Bore_Rank_1.png','Vanishing Bomb':'54/Vanishing_Bomb_Rank_1.png','Tracking Dart':'c9/Tracking_Dart_Rank_1.png',
+  'Healing Beam':'b5/Healing_Beam_Card.png','Guardian Turret':'a7/Guardian_Turret_Card.png','Dematerializer':'0d/Dematerializer_Rank_1.png','Shockwave':'66/Shockwave_Card.png',
+  'Defibrillator':'e7/Defibrillator_Rank_1.png','APS Turret':'03/APS_Turret_Rank_1.png','Glitch Trap':'7d/Glitch_Trap_Rank_1.png','Data Reshaper':'ea/Data_Reshaper_Rank_1.png','Gas Mine':'03/Gas_Mine_Rank_1.png','Explosive Mine':'24/Explosive_Mine_Rank_1.png',
+  'Mesh Shield':'e9/Mesh_Shield_Rank_1.png',"Charge 'N' Slam":'45/Charge_N_Slam_Rank_1.png','Winch Claw':'e0/Winch_Claw_Rank_1.png','Goo Gun':'2d/Goo_Gun_Card.png'
+};
+
+// ── Weapon stats (hs = headshot multiplier) ─────────────────────────
+const WS = {
+  'M11':{hs:1.5,r:'short'},'XP-54':{hs:1.5,r:'short'},'ARN-220':{hs:1.5,r:'short'},'V9S':{hs:1.5,r:'medium'},'LH1':{hs:2.0,r:'long'},'93R':{hs:1.5,r:'medium'},
+  'SR-84':{hs:2.0,r:'long'},'SH1900':{hs:0,r:'short'},'M26 Matter':{hs:0,r:'short'},'Recurve Bow':{hs:1.5,r:'long'},'Throwing Knives':{hs:1.5,r:'short'},
+  'Sword':{hs:0,r:'melee'},'Dagger':{hs:0,r:'melee'},
+  'AKM':{hs:1.5,r:'medium'},'FCAR':{hs:1.5,r:'medium'},'FAMAS':{hs:1.5,r:'medium'},'CB-01 Repeater':{hs:1.5,r:'medium'},'R.357':{hs:2.0,r:'medium'},
+  'Model 1887':{hs:0,r:'short'},'Cerberus 12GA':{hs:0,r:'short'},'CL-40':{hs:0,r:'medium'},'P90':{hs:1.5,r:'short'},'Pike-556':{hs:1.5,r:'long'},
+  'Chimera-XB':{hs:1.5,r:'medium'},'Riot Shield':{hs:0,r:'melee'},'Dual Blades':{hs:0,r:'melee'},
+  'Lewis Gun':{hs:1.5,r:'medium'},'M60':{hs:1.5,r:'medium'},'Shak-50':{hs:1.5,r:'medium'},'SA1216':{hs:0,r:'short'},'KS-23':{hs:0,r:'short'},
+  'M134 Minigun':{hs:1.33,r:'medium'},'Flamethrower':{hs:0,r:'short'},'Sledgehammer':{hs:0,r:'melee'},'.50 Akimbo':{hs:2.0,r:'medium'},
+  'BFR Titan':{hs:1.5,r:'medium'},'Spear':{hs:0,r:'melee'},'MGL32':{hs:0,r:'short'}
+};
+
+// ── Gadget stats (type only) ──────────────────────────────────────────
+const GS = {
+  'Breach Charge':{t:'explosive'},'Glitch Grenade':{t:'utility'},'Gateway':{t:'utility'},'Vanishing Bomb':{t:'utility'},
+  'H+ Infuser':{t:'support'},'Sonar Grenade':{t:'utility'},'Thermal Bore':{t:'explosive'},'Gravity Vortex':{t:'utility'},
+  'Tracking Dart':{t:'utility'},'Nullifier':{t:'utility'},
+  'Defibrillator':{t:'support'},'Jump Pad':{t:'utility'},'Zipline':{t:'utility'},'APS Turret':{t:'defensive'},
+  'Glitch Trap':{t:'defensive'},'Data Reshaper':{t:'utility'},'Hover Pad':{t:'utility'},'Gas Mine':{t:'gas'},
+  'Explosive Mine':{t:'explosive'},'Breach Drill':{t:'explosive'},'RPG-7':{t:'explosive'},'Dome Shield':{t:'defensive'},
+  'C4':{t:'explosive'},'Barricade':{t:'defensive'},'Lockbolt':{t:'utility'},'Anti-Gravity Cube':{t:'utility'},
+  'Pyro Mine':{t:'fire'},'Healing Emitter':{t:'support'},'Proximity Sensor':{t:'utility'},'Frag Grenade':{t:'explosive'},
+  'Pyro Grenade':{t:'fire'},'Gas Grenade':{t:'gas'},'Goo Grenade':{t:'utility'},'Smoke Grenade':{t:'utility'},'Flashbang':{t:'utility'}
+};
+
+// ── Role mapping (for team identity detection) ─────────────────────────
+const ROLES = {
+  'Healing Beam':['Sustain'],'Defibrillator':['Sustain'],'H+ Infuser':['Sustain'],'Healing Emitter':['Sustain'],
+  'Mesh Shield':['Shielding'],'Dome Shield':['Shielding'],'Barricade':['Shielding'],
+  'Evasive Dash':['Mobility'],'Grappling Hook':['Mobility'],'Shockwave':['Mobility'],
+  'Jump Pad':['Mobility'],'Zipline':['Mobility'],'Gateway':['Mobility'],
+  'Hover Pad':['Mobility'],'Anti-Gravity Cube':['Mobility'],
+  'Sonar Grenade':['Detection'],'Proximity Sensor':['Detection'],'Tracking Dart':['Detection'],
+  'Gas Mine':['Area Denial'],'Pyro Mine':['Area Denial'],'Pyro Grenade':['Area Denial'],
+  'Gas Grenade':['Area Denial'],'Goo Gun':['Area Denial'],'Goo Grenade':['Area Denial'],
+  'Flamethrower':['Area Denial'],
+  'Dematerializer':['Breach'],'C4':['Breach'],'Breach Charge':['Breach'],
+  'Breach Drill':['Breach'],'Thermal Bore':['Breach'],
+  'Glitch Grenade':['Disruption'],'Glitch Trap':['Disruption'],
+  'Data Reshaper':['Disruption'],'Flashbang':['Disruption'],'Nullifier':['Disruption'],
+  'Cloaking Device':['Stealth'],'Vanishing Bomb':['Stealth'],'Smoke Grenade':['Stealth'],
+  'APS Turret':['Defense'],'Guardian Turret':['Defense'],
+  'Winch Claw':['Control'],'Lockbolt':['Control'],'Gravity Vortex':['Control'],
+  "Charge 'N' Slam":['Breach','Aggression'],
+  'RPG-7':['Burst'],'Explosive Mine':['Burst','Area Denial'],
+  'Frag Grenade':['Burst'],'MGL32':['Burst']
+};
+
+// ── Item database ────────────────────────────────────────────────────
+const DATA = {
+  light: {
+    spec:[{n:'Evasive Dash'},{n:'Cloaking Device'},{n:'Grappling Hook'}],
+    wep:['M11','XP-54','ARN-220','V9S','LH1','93R','SR-84','SH1900','M26 Matter','Recurve Bow','Throwing Knives','Sword','Dagger'],
+    gad:['Breach Charge','Glitch Grenade','Gateway','Vanishing Bomb','H+ Infuser','Sonar Grenade','Thermal Bore','Gravity Vortex','Tracking Dart','Nullifier']
+  },
+  medium: {
+    spec:[{n:'Healing Beam'},{n:'Guardian Turret'},{n:'Dematerializer'},{n:'Shockwave'}],
+    wep:['AKM','FCAR','FAMAS','CB-01 Repeater','R.357','Model 1887','Cerberus 12GA','CL-40','P90','Pike-556','Chimera-XB','Riot Shield','Dual Blades'],
+    gad:['Defibrillator','Jump Pad','Zipline','APS Turret','Glitch Trap','Data Reshaper','Hover Pad','Gas Mine','Explosive Mine','Breach Drill']
+  },
+  heavy: {
+    spec:[{n:'Mesh Shield'},{n:"Charge 'N' Slam"},{n:'Winch Claw'},{n:'Goo Gun'}],
+    wep:['Lewis Gun','M60','Shak-50','SA1216','KS-23','M134 Minigun','Flamethrower','Sledgehammer','.50 Akimbo','BFR Titan','Spear','MGL32'],
+    gad:['RPG-7','Dome Shield','C4','Barricade','Lockbolt','Anti-Gravity Cube','Pyro Mine','Healing Emitter','Proximity Sensor']
+  },
+  shared: { gad:['Frag Grenade','Pyro Grenade','Gas Grenade','Goo Grenade','Smoke Grenade','Flashbang'] }
+};
+
+// ── Item interactions (anti-synergy) ──────────────────────────────────
+const IX = {
+  anti: [
+    {a:'Pyro Mine',b:'Gas Mine',d:'Fire ignites gas \u2014 clouds explode away'},
+    {a:'Pyro Mine',b:'Gas Grenade',d:'Fire ignites gas \u2014 clouds explode away'},
+    {a:'Pyro Grenade',b:'Gas Mine',d:'Fire ignites gas \u2014 clouds explode away'},
+    {a:'Pyro Grenade',b:'Gas Grenade',d:'Fire ignites gas \u2014 clouds explode away'},
+    {a:'Pyro Mine',b:'Smoke Grenade',d:'Smoke extinguishes fire'},
+    {a:'Pyro Grenade',b:'Smoke Grenade',d:'Smoke extinguishes fire'}
+  ]
+};
+function checkIX(items){
+  let a=[];
+  IX.anti.forEach(r=>{let i=items.indexOf(r.a),j=items.indexOf(r.b);if(i>-1&&j>-1)a.push(r.d);});
+  return a;
+}
+
+// ── Synergy pairs (within-loadout) ────────────────────────────────────
+const SY = [
+  {a:'Grappling Hook',b:'Gateway',d:'Grapple to your portal for unmatched rotation speed'},
+  {a:'Healing Beam',b:'Defibrillator',d:'Full medic loadout — instant revive + sustain heals'},
+  {a:'Guardian Turret',b:'APS Turret',d:'Turret holds angles while APS blocks return fire'},
+  {a:'Guardian Turret',b:'Explosive Mine',d:'Mine covers turret blind spot for trap kills'},
+  {a:'Defibrillator',b:'Healing Beam',d:'Full medic — instant revive + healing sustain'},
+  {a:'Defibrillator',b:'Smoke Grenade',d:'Smoke cover for safe revives'},
+  {a:'Defibrillator',b:'Flashbang',d:'Flash then revive while enemies are blind'},
+  {a:'Jump Pad',b:'Hover Pad',d:'Elevated platform + pad launch chain'},
+  {a:'Jump Pad',b:'Zipline',d:'Pad launch into zipline for extended mobility'},
+  {a:'Zipline',b:'Grappling Hook',d:'Zipline + grapple chain for infinite mobility'},
+  {a:'Zipline',b:'Jump Pad',d:'Drop pad then zipline out for escape'},
+  {a:'Zipline',b:'Gateway',d:'Portal + zipline creates mobility web'},
+  {a:'APS Turret',b:'Guardian Turret',d:'APS protects Guardian from return fire'},
+  {a:'APS Turret',b:'Glitch Trap',d:'Gadget denial zone — no throws, no abilities'},
+  {a:'APS Turret',b:'Proximity Sensor',d:'Detect enemies before they reach APS coverage'},
+  {a:'Glitch Trap',b:'Guardian Turret',d:'Glitch shutdown then turret clean-up'},
+  {a:'Glitch Trap',b:'APS Turret',d:'Double denial — glitch gadgets, block projectiles'},
+  {a:'Glitch Trap',b:'Gas Mine',d:'Disabled enemies eat gas damage helpless'},
+  {a:'Hover Pad',b:'Jump Pad',d:'Hover + Jump pad chain for vertical mobility'},
+  {a:'Hover Pad',b:'Dematerializer',d:'Hover pad to demat ceilings for new routes'},
+  {a:'Gas Mine',b:'Guardian Turret',d:'Gas + turret traps enemies in damage zone'},
+  {a:'Gas Mine',b:'Proximity Sensor',d:'Detect then gas — trap zone control'},
+  {a:'Gas Mine',b:'Glitch Trap',d:'Gas + glitch — disabled enemies choke on gas'},
+  {a:'Explosive Mine',b:'Guardian Turret',d:'Turret focus draws enemies into mine'},
+  {a:'Explosive Mine',b:'Proximity Sensor',d:'Prox sensor reveals enemy position for a well-placed mine'},
+  {a:'Explosive Mine',b:'Gas Mine',d:'Explosive + gas mine combo trap'},
+  {a:'RPG-7',b:'Explosive Mine',d:'Mine + RPG burst one-shots any class'},
+  {a:'RPG-7',b:'Frag Grenade',d:'Double explosive area saturation'},
+  {a:'Dome Shield',b:'Barricade',d:'Barricade in dome for cover that lasts'},
+  {a:'Dome Shield',b:'Healing Beam',d:'Heal teammates safely inside dome'},
+  {a:'Barricade',b:'Guardian Turret',d:'Barricade protects turret from flank fire'},
+  {a:'Barricade',b:'Dome Shield',d:'Barricade in dome for harder cover'},
+  {a:'Healing Emitter',b:'Healing Beam',d:'AoE + beam healing for squad sustain'},
+  {a:'Healing Emitter',b:'Mesh Shield',d:'Heal while shielded — push with health regen'},
+  {a:'Healing Emitter',b:'Dome Shield',d:'Safe heal zone under dome'},
+  {a:'Proximity Sensor',b:'Explosive Mine',d:'Prox sensor spots enemies for a coordinated mine trap'},
+  {a:'Gas Grenade',b:'Gas Mine',d:'Stack gas clouds for massive area'},
+  {a:'Gas Grenade',b:'Proximity Sensor',d:'Detect + gas from range'},
+  {a:'Frag Grenade',b:'Breach Charge',d:'Frag + breach trap combo'}
+];
+
+// ── Curated cross-column synergies ─────────────────────────────────────
+const CROSS_SYN = {
+  // ── Cashout Launcher ──
+  'Winch Claw||Jump Pad':{d:'Heavy pulls cashout with Winch Claw; Medium launches it with Jump Pad into an exposed position', strategy:'Cashout Launcher'},
+  'Winch Claw||Dematerializer':{d:'Heavy pulls cashout through a floor the Medium removed with Dematerializer', strategy:'Cashout Launcher'},
+  'Winch Claw||Gateway':{d:'Heavy pulls cashout through a teammate\'s portal for instant long-distance reposition', strategy:'Cashout Launcher'},
+  'Dematerializer||Jump Pad':{d:'Drop the cashout through a dematerialized floor then launch it from below with Jump Pad', strategy:'Cashout Launcher'},
+  'Gravity Vortex||Jump Pad':{d:'Vortex pulls the cashout directly onto a Jump Pad for extended launch distance', strategy:'Cashout Launcher'},
+  'Winch Claw||Gravity Vortex':{d:'Vortex groups the cashout in one spot making it easier for a teammate to Winch it away', strategy:'Cashout Launcher'},
+  'Dematerializer||Gravity Vortex':{d:'Demat the ceiling above then Vortex pulls the cashout up through the floor', strategy:'Cashout Launcher'},
+
+  // ── Vertical Breach ──
+  'Dematerializer||Charge \'N\' Slam':{d:'Medium removes the floor; Heavy slam-drops through for devastating multi-floor breach', strategy:'Vertical Breach'},
+  'Dematerializer||C4':{d:'Medium removes floor below objective while Heavy C4s the room beneath', strategy:'Vertical Breach'},
+  'Dematerializer||Frag Grenade':{d:'Medium demats the floor; teammate drops grenades through the hole', strategy:'Vertical Breach'},
+  'Dematerializer||Pyro Grenade':{d:'Demat the ceiling and drop fire onto enemies below', strategy:'Vertical Breach'},
+  'Charge \'N\' Slam||C4':{d:'C4 the floor then slam through the breach in tandem', strategy:'Vertical Breach'},
+  'Charge \'N\' Slam||Jump Pad':{d:'Heavy slams from above onto a Jump Pad for shockwave reposition', strategy:'Vertical Breach'},
+
+  // ── Fortress Defense ──
+  'Mesh Shield||Dome Shield':{d:'Layer both shields for unbreakable objective holds', strategy:'Fortress Defense'},
+  'Mesh Shield||Barricade':{d:'Barricade covers the shield recharge window', strategy:'Fortress Defense'},
+  'Mesh Shield||APS Turret':{d:'APS blocks projectiles while the shield holds the line', strategy:'Fortress Defense'},
+  'Dome Shield||Barricade':{d:'Barricade inside the dome for layered cover that survives sustained fire', strategy:'Fortress Defense'},
+  'Dome Shield||Healing Emitter':{d:'Safe AoE healing zone under the dome for the whole squad', strategy:'Fortress Defense'},
+  'APS Turret||Glitch Trap':{d:'No projectiles and no gadgets — a dead zone your team controls', strategy:'Fortress Defense'},
+  'Guardian Turret||Mesh Shield':{d:'Shield absorbs fire while the turret returns damage', strategy:'Fortress Defense'},
+  'Guardian Turret||APS Turret':{d:'Guardian holds angles; APS blocks return fire for safe turret uptime', strategy:'Fortress Defense'},
+
+  // ── Fire Zone ──
+  'Goo Gun||Flamethrower':{d:'Ignite goo barriers for deadly fire walls that trap enemies', strategy:'Fire Zone'},
+  'Cerberus 12GA||Goo Gun':{d:'Cerberus ignites goo barriers on contact for instant fire walls', strategy:'Fire Zone'},
+  'Goo Gun||Pyro Mine':{d:'Trap enemies in goo then ignite them with a fire mine', strategy:'Fire Zone'},
+  'Goo Gun||Pyro Grenade':{d:'Cover a zone in goo while a teammate ignites it from range', strategy:'Fire Zone'},
+  'Pyro Grenade||Goo Grenade':{d:'Ignite goo on impact for instant team-wide fire denial', strategy:'Fire Zone'},
+  'Goo Grenade||Flamethrower':{d:'Ignite goo puddles your teammate creates for spread area denial', strategy:'Fire Zone'},
+  'Gas Grenade||Flamethrower':{d:'Ignite the gas cloud for massive team-controlled fire spread', strategy:'Fire Zone'},
+  'Pyro Grenade||Flamethrower':{d:'Overwhelm enemies with double fire volume from two teammates', strategy:'Fire Zone'},
+  'Pyro Mine||Goo Grenade':{d:'Trigger a fire mine on a goo puddle from range', strategy:'Fire Zone'},
+  'Gas Grenade||Gravity Vortex':{d:'Vortex pulls enemies into gas, teammate ignites for massive fire spread', strategy:'Fire Zone'},
+  'Flamethrower||Gravity Vortex':{d:'Vortex holds grouped enemies in the flamethrower\'s fire cone', strategy:'Fire Zone'},
+  'Pyro Mine||Gravity Vortex':{d:'Vortex groups enemies directly onto a fire trap', strategy:'Fire Zone'},
+
+  // ── Pull & Burst ──
+  'Winch Claw||KS-23':{d:'Winch pulls enemies into a teammate\'s KS-23 kill zone', strategy:'Pull & Burst'},
+  'Winch Claw||RPG-7':{d:'Reel a single enemy into a teammate\'s rocket for a guaranteed kill', strategy:'Pull & Burst'},
+  'Winch Claw||Explosive Mine':{d:'Pull enemies onto a pre-placed mine for instant elimination', strategy:'Pull & Burst'},
+  'Winch Claw||SA1216':{d:'Pull enemies into a teammate\'s full auto-shotgun magazine', strategy:'Pull & Burst'},
+  'Lockbolt||RPG-7':{d:'Tether a group in place then hit them with a rocket', strategy:'Pull & Burst'},
+  'Lockbolt||KS-23':{d:'Tethered enemies are easy point-blank shotgun targets', strategy:'Pull & Burst'},
+  'Lockbolt||SA1216':{d:'Tether then shred with sustained auto-shotgun fire', strategy:'Pull & Burst'},
+  'C4||Gravity Vortex':{d:'Vortex groups enemies onto a teammate\'s C4 for instant detonation', strategy:'Pull & Burst'},
+  'CL-40||Gravity Vortex':{d:'Vortex clumps enemies perfectly for CL-40 splash damage', strategy:'Pull & Burst'},
+  'Frag Grenade||Gravity Vortex':{d:'Vortex pulls the team into a single frag grenade blast', strategy:'Pull & Burst'},
+  'RPG-7||Gravity Vortex':{d:'Vortex clusters the enemy team for a devastating rocket', strategy:'Pull & Burst'},
+
+  // ── Stealth Push ──
+  'Cloaking Device||Smoke Grenade':{d:'Double concealment for undetected squad advances', strategy:'Stealth Push'},
+  'Cloaking Device||Vanishing Bomb':{d:'Extended team invisibility for multi-player flanks', strategy:'Stealth Push'},
+  'Cloaking Device||Gateway':{d:'Cloaked player places a portal for the whole team to flank through', strategy:'Stealth Push'},
+  'Smoke Grenade||Grappling Hook':{d:'Smoke screen covers grapple routes to high ground', strategy:'Stealth Push'},
+  'Vanishing Bomb||Grappling Hook':{d:'Vanish mid-grapple to land behind enemies undetected', strategy:'Stealth Push'},
+  'Cloaking Device||Jump Pad':{d:'Launch from cloak — enemies see no one land', strategy:'Stealth Push'},
+
+  // ── Detection & Trap ──
+  'Gas Mine||Proximity Sensor':{d:'Detect enemies approaching then gas them automatically', strategy:'Detection & Trap'},
+  'Explosive Mine||Proximity Sensor':{d:'Prox sensor reveals enemy location for a well-timed mine trap', strategy:'Detection & Trap'},
+  'Smoke Grenade||Proximity Sensor':{d:'Reveal enemies the moment they push through your smoke', strategy:'Detection & Trap'},
+  'Glitch Trap||Gas Mine':{d:'Disable enemy gadgets inside a gas cloud — they burn or get disabled', strategy:'Detection & Trap'},
+  'Sonar Grenade||Gas Mine':{d:'Reveal enemies with sonar then gas their position', strategy:'Detection & Trap'},
+  'Sonar Grenade||Explosive Mine':{d:'Sonar tag sets up the perfect mine kill', strategy:'Detection & Trap'},
+  'Sonar Grenade||Smoke Grenade':{d:'Sonar reveals enemies through smoke for easy ambush', strategy:'Detection & Trap'},
+  'Tracking Dart||Explosive Mine':{d:'Track a target then detonate a mine on their location', strategy:'Detection & Trap'},
+  'Explosive Mine||Gravity Vortex':{d:'Vortex groups enemies directly onto a teammate\'s mine for multi-kill', strategy:'Detection & Trap'},
+  'Gas Mine||Gravity Vortex':{d:'Vortex pulls the whole group into a gas cloud for sustained damage', strategy:'Detection & Trap'},
+
+  // ── Sustain & Siege ──
+  'Healing Beam||Defibrillator':{d:'Full medic support — instant revives and sustained healing', strategy:'Sustain & Siege'},
+  'Healing Beam||Dome Shield':{d:'Heal teammates safely inside a dome during objective holds', strategy:'Sustain & Siege'},
+  'Healing Beam||Jump Pad':{d:'Pocket heal a teammate mid-air during jump pad pushes', strategy:'Sustain & Siege'},
+  'Healing Beam||H+ Infuser':{d:'Stack healing + HP buff for overhealed aggressive pushes', strategy:'Sustain & Siege'},
+  'Healing Beam||Healing Emitter':{d:'Beam + AoE healing for squad-wide sustain in team fights', strategy:'Sustain & Siege'},
+  'H+ Infuser||Healing Emitter':{d:'HP buff plus AoE regen for overhealed squad pushes', strategy:'Sustain & Siege'},
+  'Healing Emitter||Defibrillator':{d:'AoE heal plus instant revive for squad sustain in fights', strategy:'Sustain & Siege'},
+  'Dome Shield||Defibrillator':{d:'Safe revive zone under dome while a teammate covers', strategy:'Sustain & Siege'},
+
+  // ── Rotation & Mobility ──
+  'Jump Pad||Zipline':{d:'Launch a teammate to high ground then deploy ziplines for the squad', strategy:'Rotation & Mobility'},
+  'Grappling Hook||Gateway':{d:'Create portal-based rotation routes the whole team can use', strategy:'Rotation & Mobility'},
+  'Hover Pad||Zipline':{d:'Elevated hover pad provides high-ground zipline deployment', strategy:'Rotation & Mobility'},
+  'Gateway||Jump Pad':{d:'Portal exit places a jump pad for instant momentum out of portal', strategy:'Rotation & Mobility'},
+  'Grappling Hook||Zipline':{d:'Grapple then zipline chain for infinite rotation routes', strategy:'Rotation & Mobility'},
+  'Grappling Hook||Jump Pad':{d:'Grapple to height then jump pad launch for extended aerial reach', strategy:'Rotation & Mobility'},
+
+  // ── Disruption ──
+  'Data Reshaper||Glitch Trap':{d:'Reshape enemy equipment then glitch trap the area', strategy:'Disruption'},
+  'Glitch Grenade||Glitch Trap':{d:'Double gadget disable from range and on the ground', strategy:'Disruption'},
+  'Data Reshaper||Dematerializer':{d:'Reshape enemy cover then demat the floor beneath them', strategy:'Disruption'},
+  'Flashbang||Smoke Grenade':{d:'Blind enemies through smoke — they can\'t see or push', strategy:'Disruption'},
+  'Data Reshaper||C4':{d:'Reshape enemy cover into a C4 trap location', strategy:'Disruption'},
+  'Glitch Grenade||APS Turret':{d:'Glitch incoming gadgets then block all remaining projectiles', strategy:'Disruption'},
+  'Lockbolt||Gravity Vortex':{d:'Tether locks enemies in place while vortex pulls — impossible to escape', strategy:'Disruption'}
+};
+
+// Normalize CROSS_SYN keys to sorted order for reliable lookup
+const CS = {};
+Object.keys(CROSS_SYN).forEach(k => {
+  let p = k.split('||');
+  let o = p[0] < p[1] ? p[0] + '||' + p[1] : p[1] + '||' + p[0];
+  CS[o] = CROSS_SYN[k];
+});
+
+// ── Thumbnail handling ───────────────────────────────────────────────
+function wikiURL(item) {
+  let w = W[item];
+  if (!w) return null;
+  return 'https://www.thefinals.wiki/w/images/thumb/'+w[0]+'/'+w[0]+w[1]+'/'+w+'/100px-'+w+'.webp';
+}
+function fallbackImg(el) {
+  if (el.dataset.raw) { el.src=el.dataset.raw; el.dataset.raw=''; }
+  else if (el.dataset.wiki) { el.src=el.dataset.wiki; el.dataset.wiki=''; }
+  else { el.parentElement.innerHTML='<div class="f">'+el.dataset.first+'</div>'; }
+}
+function imgTag(item) {
+  let slug=item.toLowerCase().replace(/\s+/g,'-').replace(/[^a-z0-9-]/g,'');
+  return '<img src="imgs/equipment-thumbnails/'+slug+'.png" alt="'+item+'" loading="lazy" data-raw="imgs/equipment-thumbnails/'+item+'.png" data-wiki="'+(wikiURL(item)||'')+'" data-first="'+item[0]+'" onerror="fallbackImg(this)">';
+}
+
+// ── Helpers ───────────────────────────────────────────────────────────
+function ra(a){return a[Math.floor(Math.random()*a.length)];}
+function rn(n,a){let p=[...a],r=[];while(r.length<n&&p.length){let i=Math.floor(Math.random()*p.length);r.push(p.splice(i,1)[0]);}return r;}
+function hsBadge(name){
+  let w=WS[name];
+  if(!w||!w.hs) return '';
+  return '<div class="hsb"><span class="hsb-icon">&#9760;</span> '+Math.round(w.hs*100)+'%</div>';
+}
+function gtypeHTML(n){
+  let g=GS[n];
+  if(!g) return '';
+  return '<div class="gt"><span class="b '+g.t+'">'+g.t+'</span></div>';
+}
+function rangeBadge(name){
+  let w=WS[name];
+  if(!w||!w.r) return '';
+  return '<div class="rg">Range: '+w.r+'</div>';
+}
+
+// ── Card HTML (simplified — no stat bars) ────────────────────────────
+function teamCardHTML(label, name, css, isGadget, slotKey){
+  return '<div class="card '+css+'" data-slot="'+slotKey+'">'+(isGadget?'':hsBadge(name))+'<div class="img">'+imgTag(name)+'</div><div class="ft"><div class="t">'+label+'</div><div class="n">'+name+'</div></div>'+(isGadget?gtypeHTML(name):'')+(!isGadget?rangeBadge(name):'')+'</div>';
+}
+function setTeamCard(el, name, isGadget){
+  el.querySelector('.img').innerHTML=imgTag(name);
+  el.querySelector('.ft .n').textContent=name;
+  let hsb=el.querySelector('.hsb');
+  if(!isGadget){
+    let w=WS[name];
+    if(w&&w.hs>0){
+      let h='<div class="hsb"><span class="hsb-icon">&#9760;</span> '+Math.round(w.hs*100)+'%</div>';
+      if(hsb) hsb.outerHTML=h;
+      else el.insertAdjacentHTML('afterbegin',h);
+    }else if(hsb) hsb.remove();
+  }else if(hsb) hsb.remove();
+  let gt=el.querySelector('.gt');
+  if(gt) gt.outerHTML=gtypeHTML(name);
+  else if(isGadget) el.querySelector('.ft').insertAdjacentHTML('afterend',gtypeHTML(name));
+  let rg=el.querySelector('.rg');
+  if(!isGadget&&WS[name]&&WS[name].r){
+    let h='<div class="rg">Range: '+WS[name].r+'</div>';
+    if(rg) rg.outerHTML=h;
+    else el.querySelector('.ft').insertAdjacentHTML('afterend',h);
+  }else if(rg) rg.remove();
+}
+
+// ── Build column HTML ────────────────────────────────────────────────
+const COL_NAMES = ['LOADOUT 1','LOADOUT 2','LOADOUT 3'];
+const SLOT_KEYS = ['spec','wep','gad0','gad1','gad2'];
+const SLOT_LABELS = ['SPEC','WEAPON','GADGET','GADGET','GADGET'];
+const CLASSES = ['light','medium','heavy'];
+
+function buildCols(){
+  let wrap = document.getElementById('cols');
+  let h='';
+  for(let ci=0;ci<3;ci++){
+    h+='<div class="col" data-col="'+ci+'">';
+    h+='<div class="col-label">'+COL_NAMES[ci]+'</div>';
+    h+='<div class="cclass-row">';
+    CLASSES.forEach(c=>{
+      h+='<button class="cclass-btn" data-col="'+ci+'" data-c="'+c+'">'+c+'</button>';
+    });
+    h+='</div>';
+    h+='<div class="crow"><div class="card s-card ph" data-slot="spec"><div class="img"><div class="f">?</div></div><div class="ft"><div class="t">SPEC</div><div class="n">-</div></div></div><div class="card w-card ph" data-slot="wep"><div class="img"><div class="f">?</div></div><div class="ft"><div class="t">WEAPON</div><div class="n">-</div></div></div></div>';
+    h+='<div class="crow"><div class="card g-card ph" data-slot="gad0"><div class="img"><div class="f">?</div></div><div class="ft"><div class="t">GADGET</div><div class="n">-</div></div></div><div class="card g-card ph" data-slot="gad1"><div class="img"><div class="f">?</div></div><div class="ft"><div class="t">GADGET</div><div class="n">-</div></div></div></div>';
+    h+='<div class="crow"><div class="card g-card ph" data-slot="gad2"><div class="img"><div class="f">?</div></div><div class="ft"><div class="t">GADGET</div><div class="n">-</div></div></div></div>';
+    h+='<div class="csyn"></div><div class="cix"></div><div class="goo-tip"></div>';
+    h+='</div>';
+  }
+  wrap.innerHTML=h;
+}
+buildCols();
+
+// ── State ────────────────────────────────────────────────────────────
+let cols = [
+  { cc:null, locked:{spec:null,wep:null,gad0:null,gad1:null,gad2:null} },
+  { cc:null, locked:{spec:null,wep:null,gad0:null,gad1:null,gad2:null} },
+  { cc:null, locked:{spec:null,wep:null,gad0:null,gad1:null,gad2:null} }
+];
+let spinning=false, cdTimer=null;
+
+// ── Lock / overlay ───────────────────────────────────────────────────
+function lockSlot(ci, slot, value){
+  if(spinning) return;
+  if(cols[ci].locked[slot]===value && value!==null){ value=null; }
+  cols[ci].locked[slot]=value;
+  let cards = document.querySelectorAll('.col[data-col="'+ci+'"] .card');
+  let idx=SLOT_KEYS.indexOf(slot);
+  if(cards[idx]) cards[idx].classList.toggle('lk', value!==null);
+}
+
+function openSlotOverlay(ci, slotKey){
+  if(spinning||!cols[ci].cc) return;
+  let c=DATA[cols[ci].cc];
+  let pools={spec:c.spec.map(x=>x.n), wep:c.wep, gad0:[...c.gad,...DATA.shared.gad], gad1:[...c.gad,...DATA.shared.gad], gad2:[...c.gad,...DATA.shared.gad]};
+  let items=pools[slotKey]||[];
+  let h='<div class="so-backdrop"></div><div class="so-panel"><div class="so-header">'+COL_NAMES[ci]+' \u2014 '+SLOT_LABELS[SLOT_KEYS.indexOf(slotKey)]+'</div>';
+  h+='<button class="so-random" data-ci="'+ci+'" data-slot="'+slotKey+'" data-item="">Random</button><div class="so-grid">';
+  items.forEach(item=>{
+    h+='<button class="so-item'+(cols[ci].locked[slotKey]===item?' locked':'')+'" data-ci="'+ci+'" data-slot="'+slotKey+'" data-item="'+item.replace(/"/g,'&quot;')+'">';
+    h+=imgTag(item)+'<span>'+item+'</span></button>';
+  });
+  h+='</div></div>';
+  let ov=document.getElementById('slot-overlay');
+  ov.innerHTML=h;
+  ov.classList.remove('hide');
+}
+function closeSlotOverlay(){
+  document.getElementById('slot-overlay').classList.add('hide');
+}
+
+// ── Generate single column ───────────────────────────────────────────
+function spinCol(ci, c, lk, doneCB){
+  let specNames=c.spec.map(x=>x.n);
+  let wepNames=c.wep;
+  let gadPool=[...c.gad,...DATA.shared.gad];
+
+  let specFinal=lk.spec||ra(specNames);
+  let wepFinal=lk.wep||ra(wepNames);
+  let gadgets=[null,null,null];
+  let used=[];
+  SLOT_KEYS.slice(2).forEach((key,i)=>{ if(lk[key]){ gadgets[i]=lk[key]; used.push(lk[key]); } });
+  SLOT_KEYS.slice(2).forEach((key,i)=>{
+    if(gadgets[i]===null){
+      let pool=gadPool.filter(g=>!used.includes(g));
+      if(!pool.length) pool=gadPool;
+      let pick=ra(pool);
+      gadgets[i]=pick; used.push(pick);
+    }
+  });
+
+  let allItems=[specFinal,wepFinal,...gadgets];
+  let colEl=document.querySelector('.col[data-col="'+ci+'"]');
+  let cards=colEl.querySelectorAll('.card');
+  cards.forEach((el,i)=>{
+    el.outerHTML=teamCardHTML(SLOT_LABELS[i], allItems[i], ['s-card','w-card','g-card','g-card','g-card'][i], i>=2, SLOT_KEYS[i]);
+  });
+  cards=colEl.querySelectorAll('.card');
+  cards.forEach(el=>el.classList.add('spin'));
+
+  let allLocked=Object.values(lk).every(v=>v!==null);
+  let defs=SLOT_KEYS.map((key,i)=>({
+    el:cards[i],
+    pool:allLocked?[allItems[i]]:(i===0?specNames:i===1?wepNames:gadPool),
+    final:allItems[i], iv:null, g:i>=2
+  }));
+
+  defs.forEach(d=>{ if(d.pool.length>1) d.iv=setInterval(()=>setTeamCard(d.el,ra(d.pool),d.g),55); });
+
+  function stop(idx,at){
+    setTimeout(()=>{
+      let d=defs[idx];
+      if(d.iv){clearInterval(d.iv);d.iv=null;}
+      setTeamCard(d.el,d.final,d.g);
+      d.el.classList.add('done');
+    },at);
+  }
+  if(allLocked){ stop(4,0);stop(3,0);stop(2,0);stop(1,0);stop(0,0); }
+  else { stop(4,300);stop(3,450);stop(2,600);stop(1,800);stop(0,1000); }
+
+  let revealDelay=allLocked?30:1050;
+  // Show within-column synergy
+  setTimeout(()=>{
+    let seen=new Set();
+    let synLines=[];
+    SY.forEach(p=>{
+      if(allItems.includes(p.a)&&allItems.includes(p.b)){
+        let key=p.a<p.b?p.a+'||'+p.b:p.b+'||'+p.a;
+        if(!seen.has(key)){ seen.add(key); synLines.push('<div class="csyn-ln">&bull; '+p.a+' + '+p.b+(p.d?' \u2014 '+p.d:'')+'</div>'); }
+      }
+    });
+    let synEl=colEl.querySelector('.csyn');
+    if(synEl){ synEl.innerHTML=synLines.length?'<div class="csyn-hdr">Synergy</div>'+synLines.join(''):''; }
+  },revealDelay);
+
+  // Anti-synergy
+  setTimeout(()=>{
+    let r=checkIX(allItems);
+    let ixEl=colEl.querySelector('.cix');
+    if(ixEl){
+      let h='';
+      r.forEach(d=>{h+='<span class="cix-b cix-anti">&#9888; '+d+'</span>';});
+      ixEl.innerHTML=h;
+    }
+    // Goo Gun tip
+    let tipEl=colEl.querySelector('.goo-tip');
+    if(tipEl){
+      tipEl.innerHTML=allItems.includes('Goo Gun')?'<div class="tip-b">Tip: Goo Gun can disable enemy gadgets such as mines and turrets</div>':'';
+    }
+  },revealDelay+30);
+
+  setTimeout(()=>{
+    defs.forEach(d=>{if(d.iv){clearInterval(d.iv);d.iv=null;}});
+    doneCB(allItems);
+  },revealDelay+80);
+}
+
+// ── Generate all ──────────────────────────────────────────────────────
+function genAll(){
+  if(!document.querySelector('.cclass-btn.on')||spinning) return;
+  spinning=true;
+  if(cdTimer){clearInterval(cdTimer);cdTimer=null;}
+  let btn=document.getElementById('gb');
+  btn.disabled=true; btn.classList.remove('cd'); btn.textContent='GENERATE ALL';
+
+  let results=[null,null,null];
+  let pending=3;
+  let startTime=Date.now();
+
+  for(let ci=0;ci<3;ci++){
+    if(!cols[ci].cc){ pending--; continue; }
+    spinCol(ci, DATA[cols[ci].cc], {...cols[ci].locked}, (items)=>{
+      results[ci]=items;
+      pending--;
+      if(pending===0) finalize(results);
+    });
+  }
+  if(pending===0) setTimeout(()=>finalize(results),50);
+
+  function finalize(allResults){
+    // Build active cross-column strategies
+    let allItems=[];
+    allResults.forEach((items,ci)=>{ if(items) items.forEach(item=>{ allItems.push({item,col:ci}); }); });
+    let seen=new Set();
+    let active=new Map(); // strategy -> [{pair, items, cols, desc}]
+    SY.forEach(p=>{
+      let ai=allItems.filter(x=>x.item===p.a);
+      let bi=allItems.filter(x=>x.item===p.b);
+      ai.forEach(a=>{
+        bi.forEach(b=>{
+          if(a.col!==b.col){
+            let key=a.col<b.col?p.a+'|'+p.b+'|'+a.col+'|'+b.col:p.b+'|'+p.a+'|'+b.col+'|'+a.col;
+            let sk=p.a<p.b?p.a+'||'+p.b:p.b+'||'+p.a;
+            let syn=CS[sk];
+            if(syn&&!seen.has(key)){
+              seen.add(key);
+              if(!active.has(syn.strategy)) active.set(syn.strategy,[]);
+              active.get(syn.strategy).push({pair:sk,items:[p.a,p.b],cols:[a.col,b.col],desc:syn.d});
+            }
+          }
+        });
+      });
+    });
+    // Build strategy pairs
+    let ts=document.getElementById('team-summary');
+    let stratParts=[];
+    active.forEach((entries,strategy)=>{
+      let first=entries[0];
+      stratParts.push('<span class="ts-strat">'+strategy+'</span> (<span class="ts-items">'+first.items[0]+' + '+first.items[1]+'</span> \u2014 '+first.desc+')');
+    });
+
+    // Build team profile (role-based detection)
+    let roleCounts={};
+    let roleItems={};
+    allItems.forEach(function(e){
+      let roles=ROLES[e.item];
+      if(roles) roles.forEach(function(r){
+        roleCounts[r]=(roleCounts[r]||0)+1;
+        if(!roleItems[r]) roleItems[r]=[];
+        if(roleItems[r].indexOf(e.item)===-1) roleItems[r].push(e.item);
+      });
+    });
+    let sortedRoles=Object.keys(roleCounts).sort(function(a,b){return roleCounts[b]-roleCounts[a];});
+    let activeRoles=sortedRoles.filter(function(r){return roleCounts[r]>=2;}).slice(0,2);
+    let profileParts=[];
+    if(activeRoles.length){
+      activeRoles.forEach(function(r){
+        profileParts.push('<span class="ts-strat">'+r+'</span> ('+roleItems[r].join(', ')+')');
+      });
+    }
+
+    // Compose narrative
+    let parts=[];
+    if(stratParts.length) parts.push('Strategies: '+stratParts.join('; ')+'.');
+    if(profileParts.length) parts.push('Team Profile: Strong '+profileParts.join(' and ')+' \u2014 this squad excels at '+(profileParts.length>1?'team fights with layered capabilities':'sustained '+activeRoles[0].toLowerCase())+'.');
+
+    if(parts.length){
+      ts.innerHTML=parts.join('<br>');
+      ts.classList.remove('hide');
+    }else{
+      ts.innerHTML='No cross-loadout strategies detected. Try different class or equipment combinations to discover team playstyles.';
+      ts.classList.remove('hide');
+    }
+
+    // Start cooldown
+    let elapsed=Date.now()-startTime;
+    let wait=Math.max(0,5000-elapsed);
+    setTimeout(()=>{
+      btn.disabled=true; btn.classList.add('cd'); btn.textContent=''+(wait/1000||5);
+      let cdn=Math.ceil(wait/1000);
+      cdTimer=setInterval(()=>{
+        cdn--;
+        btn.textContent=''+(cdn<0?0:cdn);
+        if(cdn<=0){ clearInterval(cdTimer);cdTimer=null;btn.disabled=false;btn.classList.remove('cd');btn.textContent='GENERATE ALL'; }
+      },1000);
+    });
+    spinning=false;
+  }
+}
+
+// ── Event handlers ───────────────────────────────────────────────────
+document.querySelectorAll('.cclass-btn').forEach(b=>{
+  b.onclick=()=>{
+    if(spinning) return;
+    let ci=parseInt(b.dataset.col);
+    let c=b.dataset.c;
+    closeSlotOverlay();
+    // Reset all locks for this column
+    Object.keys(cols[ci].locked).forEach(k=>{ cols[ci].locked[k]=null; });
+    cols[ci].cc=c;
+    // Update class button visuals
+    document.querySelectorAll('.cclass-btn[data-col="'+ci+'"]').forEach(x=>x.classList.toggle('on',x.dataset.c===c));
+    // Reset column cards to placeholders
+    let colEl=document.querySelector('.col[data-col="'+ci+'"]');
+    let cards=colEl.querySelectorAll('.card');
+    cards.forEach((el,i)=>{
+      el.classList.remove('ph','lk','spin','done');
+      el.classList.add('ph');
+      el.dataset.slot=SLOT_KEYS[i];
+      el.querySelector('.img').innerHTML='<div class="f">?</div>';
+      el.querySelector('.ft .n').textContent='-';
+      // Clear leftover badges
+      let le=el.querySelector('.hsb'); if(le) le.remove();
+      le=el.querySelector('.gt'); if(le) le.remove();
+      le=el.querySelector('.rg'); if(le) le.remove();
+    });
+    colEl.querySelector('.csyn').innerHTML='';
+    colEl.querySelector('.cix').innerHTML='';
+    colEl.querySelector('.goo-tip').innerHTML='';
+    // Enable GENERATE if any column has a class
+    let anyOn=document.querySelector('.cclass-btn.on');
+    document.getElementById('gb').disabled=!anyOn;
+  };
+});
+
+// Card click — open overlay
+document.getElementById('cols').addEventListener('click', function(e){
+  let card=e.target.closest('.card');
+  if(!card||spinning) return;
+  let colEl=card.closest('.col');
+  if(!colEl) return;
+  let ci=parseInt(colEl.dataset.col);
+  let slot=card.dataset.slot;
+  if(!cols[ci].cc) return;
+  openSlotOverlay(ci, slot);
+});
+
+// Overlay click
+document.getElementById('slot-overlay').addEventListener('click', function(e){
+  if(e.target===this||e.target.classList.contains('so-backdrop')){ closeSlotOverlay(); return; }
+  let btn=e.target.closest('[data-ci]');
+  if(!btn) return;
+  let ci=parseInt(btn.dataset.ci);
+  let slot=btn.dataset.slot;
+  let item=btn.dataset.item;
+  lockSlot(ci, slot, item||null);
+  closeSlotOverlay();
+  // Update card appearance
+  let colEl=document.querySelector('.col[data-col="'+ci+'"]');
+  let cards=colEl.querySelectorAll('.card');
+  let idx=SLOT_KEYS.indexOf(slot);
+  if(cards[idx]&&item){
+    cards[idx].classList.remove('ph','spin','done');
+    cards[idx].classList.add('lk');
+    setTeamCard(cards[idx], item, idx>=2);
+  }else if(cards[idx]){
+    cards[idx].classList.remove('lk','spin','done');
+    cards[idx].classList.add('ph');
+    cards[idx].querySelector('.img').innerHTML='<div class="f">?</div>';
+    cards[idx].querySelector('.ft .n').textContent='-';
+  }
+});
+
+document.addEventListener('keydown', function(e){
+  if(e.key==='Escape') closeSlotOverlay();
+});
+
+document.getElementById('gb').onclick=genAll;
+</script>
+</body>
+</html>

@@ -1,0 +1,774 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>The Finals — Loadout Generator</title>
+<link rel="shortcut icon" type="image/x-icon" href="imgs/favicon.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Saira:wght@400;600;700&display=swap" rel="stylesheet">
+<style>
+* { box-sizing: border-box; }
+body { background: #000; margin: 0; color: #fff; font-family: 'Saira', sans-serif; }
+#nav { width: 100%; padding: 24px 0 8px; text-align: center; }
+#nav a { display: inline-block; padding: 6px 20px; border: 0.2em solid #fff; border-radius: 10px; color: #fff; text-decoration: none; font-size: 0.95em; letter-spacing: 0.2em; text-transform: uppercase; transition: 0.2s; }
+#nav a:hover { background: #fff; color: #000; }
+#content { width: 940px; margin: 20px auto; padding: 8px 0; }
+#content h1 { font-size: 2.4em; letter-spacing: 0.25em; text-align: center; margin: 10px auto 3px; }
+.sub { font-size: 0.95em; color: #fff; letter-spacing: 0.2em; text-align: center; font-weight: 400; margin: 0 auto 14px; }
+.class-row { display: flex; justify-content: center; gap: 14px; flex-wrap: wrap; margin: 14px 0; }
+.class-btn { padding: 6px 20px; border: 0.2em solid #fff; border-radius: 10px; background: transparent; color: #fff; font-family: 'Saira', sans-serif; font-size: 1em; letter-spacing: 0.2em; text-transform: uppercase; cursor: pointer; transition: 0.2s; position: relative; }
+.class-btn:hover { background: #fff; color: #000; }
+.class-btn.on { background: #fff; color: #000; box-shadow: 0 0 12px rgba(255,255,255,0.25); animation: pop 0.25s ease; }
+@keyframes pop { 0% { transform: scale(1); } 50% { transform: scale(1.08); } 100% { transform: scale(1); } }
+.gen-btn { padding: 10px 30px; border: 0.2em solid #fff; border-radius: 10px; background: transparent; color: #fff; font-family: 'Saira', sans-serif; font-size: 1.05em; letter-spacing: 0.25em; text-transform: uppercase; cursor: pointer; transition: 0.2s; }
+.gen-btn:hover:not(:disabled) { background: #fff; color: #000; }
+.gen-btn:disabled { opacity: 0.3; cursor: default; }
+.gen-btn.cd { opacity: 0.5; border-color: #f7bb2b; color: #f7bb2b; animation: pulse 1s ease-in-out infinite; }
+@keyframes pulse { 0%,100% { opacity: 0.5; } 50% { opacity: 0.8; } }
+.gen-row { text-align: center; margin: 16px 0; }
+.disp { display: flex; flex-direction: column; align-items: center; gap: 14px; margin: 12px 0 24px; min-height: 260px; width: 100%; }
+.lo { display: grid; grid-template-columns: 195px 1fr; gap: 14px; width: 100%; align-items: start; }
+.lo-g { display: flex; gap: 14px; flex-wrap: wrap; }
+.spec-desc { font-size: 0.85em; color: #fff; line-height: 1.6; letter-spacing: 0.04em; text-align: left; }
+.it { color: #fff; font-size: 0.85em; text-transform: uppercase; letter-spacing: 0.08em; }
+.in { color: #f7bb2b; font-weight: 600; }
+.ix { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 10px; min-height: 20px; }
+.ix-b { display: inline-block; padding: 3px 8px; border-radius: 4px; font-size: 0.5em; letter-spacing: 0.05em; }
+.ix-anti { background: rgba(255,80,50,0.15); color: #ff5032; border: 0.05em solid rgba(255,80,50,0.3); }
+
+.card { width: 195px; border: 0.15em solid #333; border-radius: 10px; overflow: hidden; transition: 0.2s; background: #0a0a0a; min-height: 270px; }
+.card:hover { transform: translateY(-5px); }
+.img { width: 100%; height: 135px; display: flex; align-items: center; justify-content: center; overflow: hidden; background: linear-gradient(180deg, #9EB1C0, #CCDADE); box-shadow: inset 0 0 20px rgba(0,0,0,0.12); }
+.img img { width: 100%; height: 100%; object-fit: contain; padding: 8px; filter: drop-shadow(0 0 4px rgba(0,0,0,0.1)); }
+.img .f { width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; font-size: 2.5em; color: #fff; }
+.ft { padding: 8px 10px; text-align: center; min-height: 42px; display: flex; flex-direction: column; justify-content: center; border-top: 0.1em solid #222; }
+.ft .t { font-size: 0.55em; letter-spacing: 0.15em; color: #fff; text-transform: uppercase; }
+.ft .n { font-size: 0.82em; font-weight: 600; color: #fff; margin-top: 2px; line-height: 1.2; }
+.card.spin .img .f, .card.spin .ft .n { color: #f7bb2b; }
+.card.spin { border-color: #f7bb2b !important; box-shadow: 0 0 12px rgba(247,187,43,0.3); }
+.card.done { border-color: #fff !important; }
+.s-card { border-color: #f7bb2b; }
+.w-card { border-color: #4a9eff; }
+.g-card { border-color: #4ae6a0; }
+.ph .img .f { color: #fff; font-size: 1.6em; }
+.ph .ft .n { color: #fff; }
+.ph { border-color: #222 !important; border-style: dashed; }
+.ph:hover { border-color: #444 !important; transform: none; }
+.hint { text-align: center; color: #fff; padding: 30px 20px; }
+.hint .i { font-size: 2.4em; margin-bottom: 6px; }
+
+/* ── Stat bars ─────────────────────────────────────────────────── */
+.st { padding: 6px 10px; border-top: 0.05em solid #222; transition: opacity 0.35s ease; }
+.card.spin .st { opacity: 0; }
+.sr { display: flex; align-items: center; gap: 4px; margin: 2px 0; font-size: 0.55em; letter-spacing: 0.04em; }
+.sl { min-width: 26px; color: #888; text-transform: uppercase; }
+.sv { min-width: 18px; text-align: right; color: #fff; font-weight: 600; }
+.strack { flex: 1; height: 6px; background: #1a1a1a; border-radius: 3px; overflow: hidden; }
+.sfill { height: 100%; border-radius: 3px; transition: width 0.4s ease; }
+.su { color: #666; font-size:0.85em; margin-left:1px; }
+
+/* ── Headshot badge ───────────────────────────────────────────── */
+.hsb { background: linear-gradient(90deg,transparent,rgba(247,187,43,0.12),transparent); text-align:center; padding:3px 0; font-size:0.55em; letter-spacing:0.12em; color:#f7bb2b; border-bottom:0.05em solid rgba(247,187,43,0.2); }
+.hsb-icon { font-size:1.15em; margin-right:2px; }
+
+/* ── Gadget type badge ─────────────────────────────────────────── */
+.gt { font-size: 0.5em; letter-spacing: 0.1em; text-transform: uppercase; text-align: center; padding: 3px 0 2px; border-top: 0.05em solid #222; }
+.gt .b { display: inline-block; padding: 0 7px; border-radius: 3px; }
+.gt .explosive { background: rgba(255,80,50,0.2); color: #ff5032; }
+.gt .utility { background: rgba(80,160,255,0.2); color: #50a0ff; }
+.gt .support { background: rgba(0,212,212,0.2); color: #00d4d4; }
+.gt .defensive { background: rgba(200,130,255,0.2); color: #c882ff; }
+.gt .fire { background: rgba(255,140,0,0.2); color: #ff8c00; }
+.gt .gas { background: rgba(50,220,100,0.2); color: #32dc64; }
+
+/* ── Slot overlay ───────────────────────────────────────────── */
+#slot-overlay { position:fixed; inset:0; z-index:1000; display:flex; align-items:center; justify-content:center; }
+#slot-overlay.hide { display:none; }
+.so-backdrop { position:absolute; inset:0; background:rgba(0,0,0,0.8); }
+.so-panel { position:relative; background:#0a0a0a; border:0.15em solid #fff; border-radius:10px; padding:18px; max-width:520px; width:90%; max-height:80vh; overflow-y:auto; }
+.so-header { font-size:0.7em; letter-spacing:0.2em; color:#f7bb2b; text-transform:uppercase; text-align:center; margin-bottom:8px; }
+.so-random { display:block; margin:0 auto 10px; padding:4px 16px; border:0.15em solid #fff; border-radius:10px; background:transparent; color:#fff; font-family:'Saira',sans-serif; font-size:0.65em; letter-spacing:0.1em; cursor:pointer; transition:0.15s; }
+.so-random:hover { background:#fff; color:#000; }
+.so-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:5px; }
+.so-item { display:flex; flex-direction:column; align-items:center; gap:2px; padding:5px 3px; border:0.1em solid #333; border-radius:8px; background:transparent; color:#fff; font-family:'Saira',sans-serif; font-size:0.6em; cursor:pointer; transition:0.15s; line-height:1.2; }
+.so-item:hover { border-color:#fff; color:#fff; }
+.so-item.locked { border-color:#f7bb2b; color:#f7bb2b; background:rgba(247,187,43,0.08); }
+.card.lk { border-color:#f7bb2b !important; }
+
+/* ── Synergy explanations ────────────────────────────────────── */
+.sd-div { border: 0; border-top: 0.05em solid #333; margin: 8px 0; }
+.sd-hdr { font-size: 0.65em; color: #f7bb2b; letter-spacing: 0.1em; margin: 4px 0 3px; text-transform: uppercase; }
+.sd-ln { font-size: 0.72em; color: #fff; margin: 1px 0; line-height: 1.5; }
+
+hr { border: 0; border-top: 0.08em solid #222; margin: 20px 0; }
+#ftr { text-align: center; color: #fff; font-size: 0.78em; padding: 12px 0 24px; letter-spacing: 0.1em; }
+</style>
+</head>
+<body>
+<div id="nav"><a href="index.html">&larr; TeamV</a></div>
+<div id="content">
+  <div class="gen-row"><button class="gen-btn" id="gb" disabled>GENERATE</button></div>
+  <div class="class-row">
+    <button class="class-btn" data-c="light">Light</button>
+    <button class="class-btn" data-c="medium">Medium</button>
+    <button class="class-btn" data-c="heavy">Heavy</button>
+  </div>
+  <div class="disp" id="disp">
+    <div class="hint" id="hint">
+      <div class="i"><img src="imgs/logo.svg" alt="TeamV" style="width:32px;height:32px;opacity:0.4"></div>
+      Select a class then hit GENERATE
+    </div>
+  </div>
+  <hr>
+  <div id="ftr">TeamV &mdash; The Finals Loadout Generator Alpha 1.0<br><span style="font-size:0.75em;color:#444">All in-game assets and content &copy; Embark Studios AB</span></div>
+</div>
+<div id="slot-overlay" class="hide"></div>
+<script>
+// ── Wiki image lookup ────────────────────────────────────────────────
+const W = {
+  'Evasive Dash':'42/Evasive_Dash_Rank_1.png','Cloaking Device':'b0/Cloaking_Device_Rank_1.png','Grappling Hook':'b4/Grappling_Hook_Rank_1.png',
+  'M11':'be/M11_SideView-v2.png',
+  'Breach Charge':'fc/Breach_Charge_Rank_1.png','Gateway':'c4/Gateway_Rank_1.png','Glitch Grenade':'b5/Glitch_Grenade_Rank_1.png','Gravity Vortex':'d6/Gravity_Vortex_Rank_1.png','H+ Infuser':'ad/HPlus_Infuser_Rank_1.png','Sonar Grenade':'ca/Sonar_Grenade_Rank_1.png','Nullifier':'96/Nullifier_Rank_1.png','Thermal Bore':'dd/Thermal_Bore_Rank_1.png','Vanishing Bomb':'54/Vanishing_Bomb_Rank_1.png','Tracking Dart':'c9/Tracking_Dart_Rank_1.png',
+  'Healing Beam':'b5/Healing_Beam_Card.png','Guardian Turret':'a7/Guardian_Turret_Card.png','Dematerializer':'0d/Dematerializer_Rank_1.png','Shockwave':'66/Shockwave_Card.png',
+  'Defibrillator':'e7/Defibrillator_Rank_1.png','APS Turret':'03/APS_Turret_Rank_1.png','Glitch Trap':'7d/Glitch_Trap_Rank_1.png','Data Reshaper':'ea/Data_Reshaper_Rank_1.png','Gas Mine':'03/Gas_Mine_Rank_1.png','Explosive Mine':'24/Explosive_Mine_Rank_1.png',
+  'Mesh Shield':'e9/Mesh_Shield_Rank_1.png',"Charge 'N' Slam":'45/Charge_N_Slam_Rank_1.png','Winch Claw':'e0/Winch_Claw_Rank_1.png','Goo Gun':'2d/Goo_Gun_Card.png'
+};
+
+// ── Weapon stats (hs = headshot multiplier, rng=dmg-dropoff start m, acc=1-100, rel=reload sec) ─
+const WS = {
+  'M11':{dmg:16,rpm:1000,rng:10,acc:75,mag:40,rel:1.85,hs:1.5},
+  'XP-54':{dmg:16,rpm:880,rng:22.5,acc:78,mag:36,rel:1.7,hs:1.5},
+  'ARN-220':{dmg:17,rpm:725,rng:37.5,acc:62,mag:60,rel:2.1,hs:1.5},
+  'V9S':{dmg:38,rpm:360,rng:15,acc:72,mag:20,rel:1.45,hs:1.5},
+  'LH1':{dmg:44,rpm:280,rng:50,acc:68,mag:15,rel:2.0,hs:2.0},
+  '93R':{dmg:25,rpm:1000,rng:32,acc:65,mag:21,rel:1.75,hs:1.5},
+  'SR-84':{dmg:118,rpm:40,rng:80,acc:50,mag:6,rel:2.5,hs:2.0},
+  'SH1900':{dmg:180,rpm:80,rng:8,acc:55,mag:2,rel:1.9,hs:0},
+  'M26 Matter':{dmg:121,rpm:85,rng:15,acc:60,mag:8,rel:2.2,hs:0},
+  'Recurve Bow':{dmg:60,rpm:78,rng:30,acc:65,mag:1,rel:0.7,hs:1.5},
+  'Throwing Knives':{dmg:60,rpm:545,rng:20,acc:62,mag:12,rel:1.2,hs:1.5},
+  'Sword':{dmg:88,rpm:0,rng:0,acc:100,mag:0,rel:0,hs:0},
+  'Dagger':{dmg:60,rpm:0,rng:0,acc:100,mag:0,rel:0,hs:0},
+  'AKM':{dmg:20,rpm:600,rng:30,acc:65,mag:34,rel:2.3,hs:1.5},
+  'FCAR':{dmg:23,rpm:540,rng:35,acc:68,mag:25,rel:1.9,hs:1.5},
+  'FAMAS':{dmg:23,rpm:1080,rng:35,acc:70,mag:27,rel:2.0,hs:1.5},
+  'CB-01 Repeater':{dmg:84,rpm:82,rng:35,acc:65,mag:8,rel:2.0,hs:1.5},
+  'R.357':{dmg:74,rpm:140,rng:27.5,acc:70,mag:6,rel:2.3,hs:2.0},
+  'Model 1887':{dmg:108,rpm:69,rng:20,acc:58,mag:6,rel:2.1,hs:0},
+  'Cerberus 12GA':{dmg:104,rpm:100,rng:10,acc:55,mag:3,rel:2.5,hs:0},
+  'CL-40':{dmg:105,rpm:75,rng:20,acc:70,mag:5,rel:2.3,hs:0},
+  'P90':{dmg:14,rpm:900,rng:18,acc:85,mag:50,rel:2.2,hs:1.5},
+  'Pike-556':{dmg:49,rpm:200,rng:40,acc:60,mag:12,rel:2.6,hs:1.5},
+  'Chimera-XB':{dmg:45,rpm:260,rng:20,acc:60,mag:15,rel:1.8,hs:1.5},
+  'Riot Shield':{dmg:90,rpm:0,rng:0,acc:100,mag:0,rel:0,hs:0},
+  'Dual Blades':{dmg:50,rpm:0,rng:0,acc:100,mag:0,rel:0,hs:0},
+  'Lewis Gun':{dmg:23,rpm:500,rng:35,acc:65,mag:47,rel:2.9,hs:1.5},
+  'M60':{dmg:20,rpm:580,rng:25,acc:63,mag:70,rel:2.7,hs:1.5},
+  'Shak-50':{dmg:30,rpm:420,rng:15,acc:60,mag:20,rel:2.5,hs:1.5},
+  'SA1216':{dmg:72,rpm:190,rng:12.5,acc:55,mag:16,rel:1.6,hs:0},
+  'KS-23':{dmg:100,rpm:78,rng:18,acc:58,mag:6,rel:2.4,hs:0},
+  'M134 Minigun':{dmg:11,rpm:1500,rng:30,acc:40,mag:300,rel:0,hs:1.33},
+  'Flamethrower':{dmg:30,rpm:170,rng:8,acc:80,mag:30,rel:2.0,hs:0},
+  'Sledgehammer':{dmg:100,rpm:0,rng:0,acc:100,mag:0,rel:0,hs:0},
+  '.50 Akimbo':{dmg:44,rpm:230,rng:32,acc:65,mag:14,rel:2.6,hs:2.0},
+  'BFR Titan':{dmg:88,rpm:80.5,rng:25,acc:62,mag:5,rel:2.5,hs:1.5},
+  'Spear':{dmg:65,rpm:0,rng:0,acc:100,mag:0,rel:0,hs:0},
+  'MGL32':{dmg:83,rpm:90,rng:25,acc:70,mag:6,rel:2.8,hs:0}
+};
+const WMAX = { dmg:180, rpm:1000, rng:80, acc:100, mag:70, rel:3.5, hs:2.0 };
+
+// ── Gadget stats ─────────────────────────────────────────────────────
+const GS = {
+  'Breach Charge':{t:'explosive',dmg:80,cd:20,charges:3,rad:2.5,dur:0},
+  'Glitch Grenade':{t:'utility',dmg:0,cd:25,charges:2,rad:6,dur:5},
+  'Gateway':{t:'utility',dmg:0,cd:25,charges:2,rad:0,dur:20},
+  'Vanishing Bomb':{t:'utility',dmg:0,cd:25,charges:1,rad:5,dur:5},
+  'H+ Infuser':{t:'support',dmg:0,cd:12,charges:20,rad:0,dur:0},
+  'Sonar Grenade':{t:'utility',dmg:0,cd:34,charges:2,rad:12,dur:5.25},
+  'Thermal Bore':{t:'explosive',dmg:0,cd:25,charges:2,rad:0,dur:0},
+  'Gravity Vortex':{t:'utility',dmg:0,cd:20,charges:1,rad:6,dur:10},
+  'Tracking Dart':{t:'utility',dmg:5,cd:12,charges:4,rad:0,dur:13},
+  'Nullifier':{t:'utility',dmg:0,cd:18,charges:1,rad:12,dur:3.75},
+  'Defibrillator':{t:'support',dmg:50,cd:30,charges:1,rad:2,dur:0},
+  'Jump Pad':{t:'utility',dmg:0,cd:40,charges:1,rad:0,dur:0},
+  'Zipline':{t:'utility',dmg:0,cd:37,charges:1,rad:25,dur:0},
+  'APS Turret':{t:'defensive',dmg:0,cd:35,charges:1,rad:3,dur:0},
+  'Glitch Trap':{t:'defensive',dmg:0,cd:20,charges:1,rad:5,dur:0},
+  'Data Reshaper':{t:'utility',dmg:0,cd:26,charges:2,rad:21,dur:0},
+  'Hover Pad':{t:'utility',dmg:0,cd:30,charges:1,rad:0,dur:0},
+  'Gas Mine':{t:'gas',dmg:0,cd:27,charges:2,rad:5,dur:12},
+  'Explosive Mine':{t:'explosive',dmg:120,cd:15,charges:1,rad:4.25,dur:0},
+  'Breach Drill':{t:'explosive',dmg:80,cd:15,charges:1,rad:0,dur:0},
+  'RPG-7':{t:'explosive',dmg:110,cd:45,charges:1,rad:5.5,dur:0},
+  'Dome Shield':{t:'defensive',dmg:0,cd:30,charges:1,rad:5,dur:5.5},
+  'C4':{t:'explosive',dmg:155,cd:30,charges:1,rad:6.5,dur:0},
+  'Barricade':{t:'defensive',dmg:0,cd:25,charges:2,rad:0,dur:0},
+  'Lockbolt':{t:'utility',dmg:5,cd:30,charges:1,rad:6,dur:7},
+  'Anti-Gravity Cube':{t:'utility',dmg:0,cd:28,charges:1,rad:4,dur:10},
+  'Pyro Mine':{t:'fire',dmg:55,cd:25,charges:2,rad:5,dur:5},
+  'Healing Emitter':{t:'support',dmg:0,cd:30,charges:1,rad:4,dur:0},
+  'Proximity Sensor':{t:'utility',dmg:0,cd:25,charges:2,rad:11,dur:0},
+  'Frag Grenade':{t:'explosive',dmg:140,cd:25,charges:1,rad:5.5,dur:0},
+  'Pyro Grenade':{t:'fire',dmg:0,cd:24,charges:1,rad:5,dur:5},
+  'Gas Grenade':{t:'gas',dmg:0,cd:24,charges:1,rad:5,dur:12},
+  'Goo Grenade':{t:'utility',dmg:0,cd:30,charges:2,rad:0,dur:0},
+  'Smoke Grenade':{t:'utility',dmg:0,cd:50,charges:2,rad:5,dur:9},
+  'Flashbang':{t:'utility',dmg:0,cd:18,charges:2,rad:8,dur:3}
+};
+const GMAX = { dmg:160, cd:50, charges:20, rad:21, dur:20 };
+
+// ── Specialization stats ──────────────────────────────────────────────
+const SS = {
+  'Evasive Dash':{cd:6,charges:3},
+  'Cloaking Device':{cd:12,dur:8},
+  'Grappling Hook':{cd:12,rng:25},
+  'Healing Beam':{cd:0,rng:25,heal:60},
+  'Guardian Turret':{cd:45,dmg:18,rng:25,dur:45},
+  'Dematerializer':{cd:30,dur:12},
+  'Shockwave':{cd:25,dmg:50,rad:15},
+  'Mesh Shield':{cd:8,hp:1100},
+  "Charge 'N' Slam":{cd:30,dmg:120,rad:8},
+  'Winch Claw':{cd:18,rng:20,dmg:10},
+  'Goo Gun':{dmg:10,rng:15,charges:20}
+};
+const SMAX = { dmg:130, cd:50, dur:50, rad:30, rng:30, hp:1200, charges:20, heal:100 };
+
+// ── Item descriptions ────────────────────────────────────────────────
+const DESC = {
+  'Evasive Dash':'Perform a quick dash in any direction. Breaks aim assist.',
+  'Cloaking Device':'Turn partially invisible while moving. Attacking reveals you.',
+  'Grappling Hook':'Fire a hook to pull yourself toward surfaces.',
+  'Healing Beam':'Channel restorative energy to heal yourself and teammates.',
+  'Guardian Turret':'Deploy an automated turret that fires at enemies.',
+  'Dematerializer':'Temporarily remove surfaces to create passage.',
+  'Shockwave':'Create a shockwave that damages and pushes enemies.',
+  'Mesh Shield':'Deploy a frontal energy shield that blocks incoming fire.',
+  "Charge 'N' Slam":'Charge forward and slam the ground to damage enemies.',
+  'Winch Claw':'Fire a winch to pull enemies and objects toward you.',
+  'Goo Gun':'Fire goo that blocks paths and sticks enemies.',
+  'M11':'High-rate SMG built for close-quarters magazine dumps.',
+  'XP-54':'Versatile burst SMG with solid mid-range handling.',
+  'ARN-220':'Lightweight rifle with a large magazine for suppressive fire.',
+  'V9S':'Silent semi-auto pistol for stealthy takedowns.',
+  'LH1':'Hard-hitting semi-auto with a high headshot multiplier.',
+  '93R':'Three-round burst machine pistol for close range.',
+  'SR-84':'Bolt-action sniper with devastating precision.',
+  'SH1900':'Double-barrel shotgun with immense close-range burst.',
+  'M26 Matter':'Lever-action slug shotgun with surprising reach.',
+  'Recurve Bow':'Silent chargeable bow that never needs reloading.',
+  'Throwing Knives':'Silent reusable blades for quick ambushes.',
+  'Sword':'Melee weapon with lunge and spin attacks.',
+  'Dagger':'Backstab-oriented melee with high mobility.',
+  'AKM':'Reliable all-round assault rifle.',
+  'FCAR':'Accurate assault rifle with a red-dot sight.',
+  'FAMAS':'Three-round burst rifle with a fast fire rate.',
+  'CB-01 Repeater':'Lever-action rifle with strong mid-range punch.',
+  'R.357':'Powerful revolver with a high headshot multiplier.',
+  'Model 1887':'Lever-action shotgun with tight pellet spread.',
+  'Cerberus 12GA':'Three-barrel shotgun with a triple burst.',
+  'CL-40':'Pump-action grenade launcher for indirect fire.',
+  'P90':'High-mobility PDW with a large magazine.',
+  'Pike-556':'Semi-auto battle rifle for precise long-range fire.',
+  'Chimera-XB':'Experimental burst rifle for mid-range trades.',
+  'Riot Shield':'Hand-held shield that blocks frontal damage.',
+  'Dual Blades':'Dual-wielded blades with a defensive block stance.',
+  'Lewis Gun':'Slow-firing LMG with sustained damage output.',
+  'M60':'Medium-rate LMG balanced for run-and-gun play.',
+  'Shak-50':'Two-burst LMG with heavy per-shot damage.',
+  'SA1216':'Semi-auto shotgun with a large magazine.',
+  'KS-23':'Single-shot pump shotgun with high stopping power.',
+  'M134 Minigun':'Spin-up minigun with extreme fire rate.',
+  'Flamethrower':'Close-range area denial with lingering burn.',
+  'Sledgehammer':'Heavy melee that destroys structures.',
+  '.50 Akimbo':'Dual-wielded magnums with high burst potential.',
+  'BFR Titan':'Single-action magnum with immense per-shot damage.',
+  'Spear':'Long-reaching melee with sweeping attacks.',
+  'MGL32':'Six-round grenade launcher for area saturation.',
+  'Breach Charge':'Adhesive explosive for breaching walls.',
+  'Gateway':'Deploy portals for long-range team teleportation.',
+  'Glitch Grenade':'EMP grenade that disables enemy gadgets.',
+  'Vanishing Bomb':'Throwable bomb that grants brief invisibility.',
+  'H+ Infuser':'Stim that grants rapid health regeneration.',
+  'Sonar Grenade':'Reveals enemies through walls with sonar pulses.',
+  'Thermal Bore':'Drills through any surface silently.',
+  'Gravity Vortex':'Gravity well that pulls enemies and objects.',
+  'Tracking Dart':'Marks enemies with a tracker visible through walls.',
+  'Nullifier':'Suppresses enemy abilities within its field.',
+  'Defibrillator':'Revives teammates instantly at range.',
+  'Jump Pad':'Launches players vertically.',
+  'Zipline':'Creates a zipline for team traversal.',
+  'APS Turret':'Destroys incoming projectiles automatically.',
+  'Glitch Trap':'Proximity trap that disables enemy gadgets.',
+  'Data Reshaper':'Transforms enemy deployables into harmless objects.',
+  'Hover Pad':'Creates a floating platform for aerial positioning.',
+  'Gas Mine':'Proximity-triggered gas cloud for area denial.',
+  'Explosive Mine':'Proximity-triggered explosive for ambushes.',
+  'Breach Drill':'Drills through floors and ceilings silently.',
+  'RPG-7':'High-damage rocket for groups and structures.',
+  'Dome Shield':'Deployable sphere that blocks incoming fire.',
+  'C4':'Remote-detonated explosive for traps.',
+  'Barricade':'Deployable wall for quick defensive positions.',
+  'Lockbolt':'Tethers enemies to the impact point.',
+  'Anti-Gravity Cube':'Creates a low-gravity zone.',
+  'Pyro Mine':'Proximity mine that ignites a fire field.',
+  'Healing Emitter':'Field that heals allies over time.',
+  'Proximity Sensor':'Detects and marks enemies in its radius.',
+  'Frag Grenade':'Standard fragmentation grenade.',
+  'Pyro Grenade':'Incendiary grenade that covers an area in fire.',
+  'Gas Grenade':'Creates a damaging toxic cloud.',
+  'Goo Grenade':'Splatters goo to block paths (flammable).',
+  'Smoke Grenade':'Creates a thick smoke screen.',
+  'Flashbang':'Blinds and deafens enemies in its blast.'
+};
+
+// ── Item database ────────────────────────────────────────────────────
+const DATA = {
+  light: {
+    spec:[
+      { n:'Evasive Dash', desc:'Perform a quick dash in any direction. Breaks aim assist.' },
+      { n:'Cloaking Device', desc:'Turn partially invisible while moving. Attacking or taking damage briefly reveals you.' },
+      { n:'Grappling Hook', desc:'Fire a grappling hook to pull yourself toward surfaces and objects.' }
+    ],
+    wep:['M11','XP-54','ARN-220','V9S','LH1','93R','SR-84','SH1900','M26 Matter','Recurve Bow','Throwing Knives','Sword','Dagger'],
+    gad:['Breach Charge','Glitch Grenade','Gateway','Vanishing Bomb','H+ Infuser','Sonar Grenade','Thermal Bore','Gravity Vortex','Tracking Dart','Nullifier']
+  },
+  medium: {
+    spec:[
+      { n:'Healing Beam', desc:'Channel a beam of restorative energy to heal yourself and teammates.' },
+      { n:'Guardian Turret', desc:'Deploy an automated turret that fires at enemies in range.' },
+      { n:'Dematerializer', desc:'Temporarily remove a surface to create passage through walls and floors.' },
+      { n:'Shockwave', desc:'Create a powerful shockwave that damages and pushes enemies away.' }
+    ],
+    wep:['AKM','FCAR','FAMAS','CB-01 Repeater','R.357','Model 1887','Cerberus 12GA','CL-40','P90','Pike-556','Chimera-XB','Riot Shield','Dual Blades'],
+    gad:['Defibrillator','Jump Pad','Zipline','APS Turret','Glitch Trap','Data Reshaper','Hover Pad','Gas Mine','Explosive Mine','Breach Drill']
+  },
+  heavy: {
+    spec:[
+      { n:'Mesh Shield', desc:'Deploy a frontal energy shield that blocks incoming fire.' },
+      { n:"Charge 'N' Slam", desc:'Charge forward and slam the ground to damage and stagger enemies.' },
+      { n:'Winch Claw', desc:'Fire a winch to pull enemies, objects, and teammates toward you.' },
+      { n:'Goo Gun', desc:'Fire goo that blocks paths, sticks enemies, and creates cover.' }
+    ],
+    wep:['Lewis Gun','M60','Shak-50','SA1216','KS-23','M134 Minigun','Flamethrower','Sledgehammer','.50 Akimbo','BFR Titan','Spear','MGL32'],
+    gad:['RPG-7','Dome Shield','C4','Barricade','Lockbolt','Anti-Gravity Cube','Pyro Mine','Healing Emitter','Proximity Sensor']
+  },
+  shared: { gad:['Frag Grenade','Pyro Grenade','Gas Grenade','Goo Grenade','Smoke Grenade','Flashbang'] }
+};
+
+// ── Item interactions (synergy / anti-synergy) ────────────────────────
+const IX = {
+  anti: [
+    {a:'Pyro Mine',b:'Gas Mine',d:'Fire ignites gas — clouds explode away'},
+    {a:'Pyro Mine',b:'Gas Grenade',d:'Fire ignites gas — clouds explode away'},
+    {a:'Pyro Grenade',b:'Gas Mine',d:'Fire ignites gas — clouds explode away'},
+    {a:'Pyro Grenade',b:'Gas Grenade',d:'Fire ignites gas — clouds explode away'},
+    {a:'Pyro Mine',b:'Smoke Grenade',d:'Smoke extinguishes fire'},
+    {a:'Pyro Grenade',b:'Smoke Grenade',d:'Smoke extinguishes fire'}
+  ]
+};
+
+// ── Synergy pairs ──────────────────────────────────────────────────────
+const SY = [
+  {a:'Grappling Hook',b:'Gateway'},
+  {a:'Healing Beam',b:'Defibrillator'},
+  {a:'Guardian Turret',b:'APS Turret'},
+  {a:'Guardian Turret',b:'Explosive Mine'},
+  {a:'Defibrillator',b:'Healing Beam'},
+  {a:'Defibrillator',b:'Smoke Grenade'},
+  {a:'Defibrillator',b:'Flashbang'},
+  {a:'Jump Pad',b:'Hover Pad'},
+  {a:'Jump Pad',b:'Zipline'},
+  {a:'Zipline',b:'Grappling Hook'},
+  {a:'Zipline',b:'Jump Pad'},
+  {a:'Zipline',b:'Gateway'},
+  {a:'APS Turret',b:'Guardian Turret'},
+  {a:'APS Turret',b:'Glitch Trap'},
+  {a:'APS Turret',b:'Proximity Sensor'},
+  {a:'Glitch Trap',b:'Guardian Turret'},
+  {a:'Glitch Trap',b:'APS Turret'},
+  {a:'Glitch Trap',b:'Gas Mine'},
+  {a:'Hover Pad',b:'Jump Pad'},
+  {a:'Hover Pad',b:'Dematerializer'},
+  {a:'Gas Mine',b:'Guardian Turret'},
+  {a:'Gas Mine',b:'Proximity Sensor'},
+  {a:'Gas Mine',b:'Glitch Trap'},
+  {a:'Explosive Mine',b:'Guardian Turret'},
+  {a:'Explosive Mine',b:'Proximity Sensor'},
+  {a:'Explosive Mine',b:'Gas Mine'},
+  {a:'RPG-7',b:'Explosive Mine'},
+  {a:'RPG-7',b:'Frag Grenade'},
+  {a:'Dome Shield',b:'Barricade'},
+  {a:'Dome Shield',b:'Healing Beam'},
+  {a:'Barricade',b:'Guardian Turret'},
+  {a:'Barricade',b:'Dome Shield'},
+  {a:'Healing Emitter',b:'Healing Beam'},
+  {a:'Healing Emitter',b:'Mesh Shield'},
+  {a:'Healing Emitter',b:'Dome Shield'},
+  {a:'Proximity Sensor',b:'Explosive Mine'},
+  {a:'Gas Grenade',b:'Gas Mine'},
+  {a:'Gas Grenade',b:'Proximity Sensor'},
+  {a:'Frag Grenade',b:'Breach Charge'}
+];
+
+// ── Synergy explanations ──────────────────────────────────────────────
+const SY_DESC = {
+  'Grappling Hook||Gateway':'Create team-wide rotation paths using grapple points through portals.',
+  'Healing Beam||Defibrillator':'Maximum team sustain with healing beam and instant ranged revives.',
+  'Guardian Turret||APS Turret':'Fortify positions with automated offense and projectile defense working together.',
+  'Guardian Turret||Explosive Mine':'Trap approaches while your turret covers chokepoints for cross-fire setups.',
+  'Guardian Turret||Gas Mine':'Corner enemies into gas clouds with turret suppression fire.',
+  'Guardian Turret||Barricade':'Deploy barricade for cover then place turret on top for elevated sightlines.',
+  'Jump Pad||Hover Pad':'Create elevated platforms then launch teammates onto them for aerial holds.',
+  'Jump Pad||Zipline':'Launch to high ground then deploy ziplines for team-wide rotation access.',
+  'Frag Grenade||Breach Charge':'Open walls and flush out enemies with frags through the new sightlines.',
+  'Gas Mine||Gas Grenade':'Layer gas clouds on objectives with both mine and grenade for extended denial.',
+  'Gas Mine||Proximity Sensor':'Place gas traps that trigger automatically on enemy movement detection.',
+  'Proximity Sensor||Explosive Mine':'Detect enemies approaching, then detonate mines for trap eliminations.',
+  'Dome Shield||Healing Beam':'Deploy dome over downed teammates and heal them safely through the revive.',
+  'Healing Emitter||Dome Shield':'Create a healing zone inside a dome for impenetrable defensive holds.',
+  'Dome Shield||Barricade':'Layer dome shields behind barricades for cover that lasts through sustained fire.',
+  'APS Turret||Glitch Trap':'Create a no-projectile, no-gadget exclusion zone that shuts down pushes.',
+  'Glitch Trap||Gas Mine':'Disable enemy gadgets within a gas cloud so enemies must choose between abilities or damage.'
+};
+function checkIX(items){
+  let a=[];
+  IX.anti.forEach(r=>{let i=items.indexOf(r.a),j=items.indexOf(r.b);if(i>-1&&j>-1)a.push(r.d);});
+  return a;
+}
+
+// ── Thumbnail handling ───────────────────────────────────────────────
+function wikiURL(item) {
+  let w = W[item];
+  if (!w) return null;
+  return `https://www.thefinals.wiki/w/images/thumb/${w[0]}/${w[0]}${w[1]}/${w}/100px-${w}.webp`;
+}
+function fallbackImg(el) {
+  if (el.dataset.raw) { el.src=el.dataset.raw; el.dataset.raw=''; }
+  else if (el.dataset.wiki) { el.src=el.dataset.wiki; el.dataset.wiki=''; }
+  else { el.parentElement.innerHTML='<div class="f">'+el.dataset.first+'</div>'; }
+}
+function imgTag(item) {
+  let slug=item.toLowerCase().replace(/\s+/g,'-').replace(/[^a-z0-9-]/g,'');
+  let local='imgs/equipment-thumbnails/'+slug+'.png';
+  let raw='imgs/equipment-thumbnails/'+item+'.png';
+  let wiki=wikiURL(item)||'';
+  return '<img src="'+local+'" alt="'+item+'" loading="lazy" data-raw="'+raw+'" data-wiki="'+wiki+'" data-first="'+item[0]+'" onerror="fallbackImg(this)">';
+}
+
+// ── Stat bar rendering ───────────────────────────────────────────────
+function bar(v,m,c){
+  let p=Math.min(v/m,1);
+  return '<div class="strack"><div class="sfill" style="width:'+(p*100)+'%;background:'+c+'"></div></div>';
+}
+function valStr(v){return v%1?v.toFixed(1):v;}
+function rngColor(v){return v<=15?'#ff5032':v<=35?'#f7bb2b':'#32dc78';}
+function hsBadge(name){
+  let w=WS[name];
+  if (!w||!w.hs) return '';
+  return '<div class="hsb"><span class="hsb-icon">&#9760;</span> '+Math.round(w.hs*100)+'%</div>';
+}
+function statRows(items,isGadget){
+  let h='<div class="st">';
+  let s=SS[items];
+  if (s) {
+    let rows=[];
+    if (s.dmg>0) rows.push({l:'DMG',v:s.dmg,m:SMAX.dmg,s:'',c:'#ff5032'});
+    if (s.cd>0) rows.push({l:'CD',v:s.cd,m:SMAX.cd,s:'sec',c:'#50a0ff'});
+    if (s.dur>0) rows.push({l:'DUR',v:s.dur,m:SMAX.dur,s:'sec',c:'#f7bb2b'});
+    if (s.rad>0) rows.push({l:'RAD',v:s.rad,m:SMAX.rad,s:'m',c:'#c882ff'});
+    if (s.rng>0) rows.push({l:'RNG',v:s.rng,m:SMAX.rng,s:'m',c:'#50a0ff'});
+    if (s.hp>0) rows.push({l:'HP',v:s.hp,m:SMAX.hp,s:'',c:'#32dc78'});
+    if (s.charges>1) rows.push({l:'AMMO',v:s.charges,m:SMAX.charges,s:'',c:'#32dc78'});
+    if (s.heal>0) rows.push({l:'HEAL',v:s.heal,m:SMAX.heal,s:'/s',c:'#32dc78'});
+    rows.forEach(r=>{h+='<div class="sr"><span class="sl">'+r.l+'</span>'+bar(r.v,r.m,r.c)+'<span class="sv">'+valStr(r.v)+(r.s?' <span class="su">'+r.s+'</span>':'')+'</span></div>';});
+    return h+'</div>';
+  }
+  if (isGadget) {
+    let g=GS[items];
+    if (!g) return h+'</div>';
+    let rows=[];
+    if (g.dmg>0) rows.push({l:'DMG',v:g.dmg,m:GMAX.dmg,s:'',c:'#ff5032'});
+    if (g.cd>0) rows.push({l:'CD',v:g.cd,m:GMAX.cd,s:'sec',c:'#50a0ff'});
+    if (g.charges>1) rows.push({l:'AMMO',v:g.charges,m:GMAX.charges,s:'',c:'#32dc78'});
+    if (g.rad>0) rows.push({l:'RAD',v:g.rad,m:GMAX.rad,s:'m',c:'#c882ff'});
+    if (g.dur>0) rows.push({l:'DUR',v:g.dur,m:GMAX.dur,s:'sec',c:'#f7bb2b'});
+    rows.forEach(r=>{h+='<div class="sr"><span class="sl">'+r.l+'</span>'+bar(r.v,r.m,r.c)+'<span class="sv">'+valStr(r.v)+(r.s?' <span class="su">'+r.s+'</span>':'')+'</span></div>';});
+  } else {
+    let w=WS[items];
+    if (!w) return h+'</div>';
+    let rows=[];
+    rows.push({l:'DMG',v:w.dmg,m:WMAX.dmg,s:'',c:'#ff5032'});
+    if (w.rpm>0) rows.push({l:'FR',v:w.rpm,m:WMAX.rpm,s:'rpm',c:'#50a0ff'});
+    if (w.rng>0) rows.push({l:'Range',v:w.rng,m:WMAX.rng,s:'m',c:rngColor(w.rng)});
+    if (w.acc>0&&w.rpm>0) rows.push({l:'ACC',v:w.acc,m:WMAX.acc,s:'',c:'#32dc78'});
+    if (w.mag>0) rows.push({l:'MAG',v:w.mag,m:WMAX.mag,s:'',c:'#f7bb2b'});
+    if (w.rel>0) rows.push({l:'REL',v:w.rel,m:WMAX.rel,s:'sec',c:'#50a0ff'});
+    rows.forEach(r=>{h+='<div class="sr"><span class="sl">'+r.l+'</span>'+bar(r.v,r.m,r.c)+'<span class="sv">'+valStr(r.v)+(r.s?' <span class="su">'+r.s+'</span>':'')+'</span></div>';});
+  }
+  return h+'</div>';
+}
+function gtypeHTML(n){
+  let g=GS[n];
+  if (!g) return '';
+  return '<div class="gt"><span class="b '+g.t+'">'+g.t+'</span></div>';}
+
+// ── UI Logic ─────────────────────────────────────────────────────────
+let cc=null, spinning=false, cdTimer=null;
+
+function cardHTML(label, name, css, isGadget) {
+  return '<div class="card '+css+'">'+(isGadget?'':hsBadge(name))+'<div class="img">'+imgTag(name)+'</div><div class="ft"><div class="t">'+label+'</div><div class="n">'+name+'</div></div>'+(isGadget?gtypeHTML(name):'')+statRows(name,isGadget)+'</div>';
+}
+
+function showPH() {
+  let hint=document.getElementById('hint');
+  if(hint) hint.style.display='none';
+  let d=document.getElementById('disp');
+  d.innerHTML='<div class="lo"><div class="card s-card ph"><div class="img"><div class="f">?</div></div><div class="ft"><div class="t">SPECIALIZATION</div><div class="n">-</div></div></div><div class="spec-desc"></div><div class="card w-card ph"><div class="img"><div class="f">?</div></div><div class="ft"><div class="t">WEAPON</div><div class="n">-</div></div></div><div class="lo-g"><div class="card g-card ph"><div class="img"><div class="f">?</div></div><div class="ft"><div class="t">GADGET</div><div class="n">-</div></div></div><div class="card g-card ph"><div class="img"><div class="f">?</div></div><div class="ft"><div class="t">GADGET</div><div class="n">-</div></div></div><div class="card g-card ph"><div class="img"><div class="f">?</div></div><div class="ft"><div class="t">GADGET</div><div class="n">-</div></div></div></div></div><div class="ix" id="ix"></div>';
+}
+
+function ra(a){return a[Math.floor(Math.random()*a.length)];}
+function rn(n,a){let p=[...a],r=[];while(r.length<n&&p.length){let i=Math.floor(Math.random()*p.length);r.push(p.splice(i,1)[0]);}return r;}
+
+// ── Locked state & synergy logic ──────────────────────────────────────
+let locked = { spec:null, wep:null, gad0:null, gad1:null, gad2:null };
+let symap = {};
+SY.forEach(p=>{
+  if(!symap[p.a]) symap[p.a]=new Set();
+  if(!symap[p.b]) symap[p.b]=new Set();
+  symap[p.a].add(p.b);
+  symap[p.b].add(p.a);
+});
+
+function pickSynergy(pool, lockedVals){
+  if(!pool.length) return null;
+  let scores = pool.map(item => {
+    let score = 0;
+    lockedVals.forEach(lv => {
+      if(symap[item] && symap[item].has(lv)) score++;
+    });
+    return { item, score };
+  });
+  let max = Math.max(...scores.map(s=>s.score));
+  if(max===0) return null;
+  let candidates = scores.filter(s=>s.score===max).map(s=>s.item);
+  return ra(candidates);
+}
+
+function lockSlot(slot, value){
+  if(spinning) return;
+  if(locked[slot] === value && value !== null) { value = null; }
+  locked[slot] = value;
+  let cards = document.querySelectorAll('#disp .card');
+  let keys = ['spec','wep','gad0','gad1','gad2'];
+  let idx = keys.indexOf(slot);
+  if(cards[idx]) cards[idx].classList.toggle('lk', value !== null);
+}
+
+function openSlotOverlay(slotKey){
+  if(spinning||!cc) return;
+  let c = DATA[cc];
+  let slotLabels = { spec:'SPECIALIZATION', wep:'WEAPON', gad0:'GADGET 1', gad1:'GADGET 2', gad2:'GADGET 3' };
+  let pools = {
+    spec: c.spec.map(x=>x.n),
+    wep: c.wep,
+    gad0: [...c.gad, ...DATA.shared.gad],
+    gad1: [...c.gad, ...DATA.shared.gad],
+    gad2: [...c.gad, ...DATA.shared.gad]
+  };
+  let items = pools[slotKey] || [];
+  let h = '<div class="so-backdrop"></div><div class="so-panel"><div class="so-header">'+(slotLabels[slotKey]||'')+'</div>';
+  h += '<button class="so-random" data-slot="'+slotKey+'" data-item="">Random</button><div class="so-grid">';
+  items.forEach(item => {
+    h += '<button class="so-item'+(locked[slotKey]===item?' locked':'')+'" data-slot="'+slotKey+'" data-item="'+item.replace(/"/g,'&quot;')+'">';
+    h += imgTag(item)+'<span>'+item+'</span></button>';
+  });
+  h += '</div></div>';
+  let overlay = document.getElementById('slot-overlay');
+  overlay.innerHTML = h;
+  overlay.classList.remove('hide');
+}
+
+function closeSlotOverlay(){
+  document.getElementById('slot-overlay').classList.add('hide');
+}
+
+document.querySelectorAll('.class-btn').forEach(b=>{
+  b.onclick=()=>{
+    if(spinning) return;
+    cc=b.dataset.c;
+    if(cdTimer){clearInterval(cdTimer);cdTimer=null;}
+    document.querySelectorAll('.class-btn').forEach(x=>x.classList.toggle('on',x.dataset.c===cc));
+    showPH();
+    Object.keys(locked).forEach(k=>{ locked[k]=null; });
+    closeSlotOverlay();
+    let btn=document.getElementById('gb');
+    btn.disabled=false; btn.classList.remove('cd'); btn.textContent='GENERATE';
+  };
+});
+
+document.getElementById('disp').addEventListener('click', function(e){
+  let card = e.target.closest('.card');
+  if(!card||spinning) return;
+  let cards = this.querySelectorAll('.card');
+  let idx = Array.from(cards).indexOf(card);
+  if(idx===-1) return;
+  openSlotOverlay(['spec','wep','gad0','gad1','gad2'][idx]);
+});
+
+document.getElementById('slot-overlay').addEventListener('click', function(e){
+  if(e.target===this||e.target.classList.contains('so-backdrop')){ closeSlotOverlay(); return; }
+  let btn = e.target.closest('[data-slot]');
+  if(!btn) return;
+  let slot = btn.dataset.slot;
+  let item = btn.dataset.item;
+  lockSlot(slot, item||null);
+  closeSlotOverlay();
+});
+
+document.addEventListener('keydown', function(e){
+  if(e.key==='Escape') closeSlotOverlay();
+});
+
+function cd(btn){
+  btn.disabled=true; btn.classList.add('cd'); btn.textContent='5';
+  let n=4;
+  cdTimer=setInterval(()=>{
+    btn.textContent=''+n; n--;
+    if(n<0){clearInterval(cdTimer);cdTimer=null;btn.disabled=false;btn.classList.remove('cd');btn.textContent='GENERATE';}
+  },1000);
+}
+
+function setCard(el, name, isGadget) {
+  el.querySelector('.img').innerHTML=imgTag(name);
+  el.querySelector('.ft .n').textContent=name;
+  let hsb=el.querySelector('.hsb');
+  if (!isGadget) {
+    let w=WS[name];
+    if (w&&w.hs>0) {
+      let h='<div class="hsb"><span class="hsb-icon">&#9760;</span> '+Math.round(w.hs*100)+'%</div>';
+      if (hsb) hsb.outerHTML=h;
+      else el.insertAdjacentHTML('afterbegin',h);
+    } else if (hsb) hsb.remove();
+  } else if (hsb) hsb.remove();
+  let gt=el.querySelector('.gt');
+  if (gt) gt.outerHTML=gtypeHTML(name);
+  else if (isGadget) el.querySelector('.ft').insertAdjacentHTML('afterend',gtypeHTML(name));
+  let st=el.querySelector('.st');
+  if (st) st.outerHTML=statRows(name,isGadget);
+}
+
+function startSpin(c, lk){
+  let specNames=c.spec.map(x=>x.n);
+  let wepNames=c.wep;
+  let gadPool=[...c.gad,...DATA.shared.gad];
+
+  let specFinal = lk.spec || ra(specNames);
+  let wepFinal  = lk.wep  || ra(wepNames);
+
+  let gadKeys = ['gad0','gad1','gad2'];
+  let gadgets = [null, null, null];
+  let used = [];
+  gadKeys.forEach((key,i)=>{
+    if(lk[key]){ gadgets[i]=lk[key]; used.push(lk[key]); }
+  });
+  gadKeys.forEach((key,i)=>{
+    if(gadgets[i]===null){
+      let pool = gadPool.filter(g=>!used.includes(g));
+      if(!pool.length) pool = gadPool;
+      let pick = ra(pool);
+      gadgets[i]=pick;
+      used.push(pick);
+    }
+  });
+
+  let disp=document.getElementById('disp');
+  disp.innerHTML='<div class="lo">'+cardHTML('SPECIALIZATION',specFinal,'s-card')+'<div class="spec-desc"></div>'+cardHTML('WEAPON',wepFinal,'w-card')+'<div class="lo-g">'+cardHTML('GADGET',gadgets[0],'g-card',true)+cardHTML('GADGET',gadgets[1],'g-card',true)+cardHTML('GADGET',gadgets[2],'g-card',true)+'</div></div><div class="ix" id="ix"></div>';
+
+  let slots=disp.querySelectorAll('.card');
+  slots.forEach(el=>el.classList.add('spin'));
+
+  let allLocked = Object.values(lk).every(v=>v!==null);
+  let defs=[
+    {el:slots[0], pool:allLocked?[specFinal]:specNames, final:specFinal, iv:null, g:false},
+    {el:slots[1], pool:allLocked?[wepFinal]:wepNames, final:wepFinal, iv:null, g:false},
+    {el:slots[2], pool:allLocked?[gadgets[0]]:gadPool, final:gadgets[0], iv:null, g:true},
+    {el:slots[3], pool:allLocked?[gadgets[1]]:gadPool, final:gadgets[1], iv:null, g:true},
+    {el:slots[4], pool:allLocked?[gadgets[2]]:gadPool, final:gadgets[2], iv:null, g:true}
+  ];
+
+  defs.forEach(d=>{
+    if(d.pool.length<=1) return;
+    d.iv=setInterval(()=>setCard(d.el,ra(d.pool),d.g),55);
+  });
+
+  function stop(idx,at){
+    setTimeout(()=>{
+      let d=defs[idx];
+      if(d.iv){clearInterval(d.iv);d.iv=null;}
+      setCard(d.el,d.final,d.g);
+      d.el.classList.add('done');
+    },at);
+  }
+  if(allLocked){ stop(4,0); stop(3,0); stop(2,0); stop(1,0); stop(0,0); }
+  else { stop(4,400); stop(3,550); stop(2,700); stop(1,950); stop(0,1200); }
+
+  let revealDelay = allLocked ? 50 : 1250;
+  setTimeout(()=>{
+    let allItems=[specFinal,wepFinal,...gadgets];
+    let labels=['Specialization','Weapon','Gadget','Gadget','Gadget'];
+    let sd=disp.querySelector('.spec-desc');
+    if(sd){
+      let h='';
+      allItems.forEach((n,i)=>{
+        h+='<div><span class="it">'+labels[i]+'</span> <span class="in">'+n+'</span> &mdash; '+(DESC[n]||'')+'.</div>';
+      });
+      let seen=new Set();
+      let synLines=[];
+      SY.forEach(p=>{
+        if(allItems.includes(p.a)&&allItems.includes(p.b)){
+          let key=p.a<p.b?p.a+'||'+p.b:p.b+'||'+p.a;
+          if(SY_DESC[key]&&!seen.has(key)){
+            seen.add(key);
+            synLines.push('<div class="sd-ln">&bull; <span class="in">'+p.a+'</span> + <span class="in">'+p.b+'</span> &mdash; '+SY_DESC[key]+'</div>');
+          }
+        }
+      });
+      if(synLines.length){
+        h+='<hr class="sd-div"><div class="sd-hdr">Synergy</div>'+synLines.join('');
+      }
+      sd.innerHTML=h;
+    }
+  },revealDelay);
+
+  setTimeout(()=>{
+    slots.forEach(el=>el.classList.remove('spin'));
+    let all=[specFinal,wepFinal,...gadgets];
+    let r=checkIX(all);
+    let ixEl=document.getElementById('ix');
+    if(ixEl){
+      let h='';
+      r.forEach(d=>{h+='<span class="ix-b ix-anti">&#9888; '+d+'</span>';});
+      ixEl.innerHTML=h;
+    }
+  },revealDelay+50);
+
+  setTimeout(()=>{
+    defs.forEach(d=>{if(d.iv){clearInterval(d.iv);d.iv=null;}});
+    spinning=false;
+  },revealDelay+100);
+}
+
+function gen(){
+  if(!cc||spinning) return;
+  spinning=true;
+  if(cdTimer){clearInterval(cdTimer);cdTimer=null;}
+  let btn=document.getElementById('gb');
+  btn.disabled=true; btn.classList.remove('cd'); btn.textContent='GENERATE';
+  startSpin(DATA[cc], {...locked});
+  cd(btn);
+}
+document.getElementById('gb').onclick=gen;
+</script>
+</body>
+</html>
